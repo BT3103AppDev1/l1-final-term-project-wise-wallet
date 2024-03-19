@@ -58,6 +58,11 @@
 
 </template>
 <style scoped>
+.customerSupportContainer{
+    height:100vh;
+    flex:1;
+    background: white;
+}
 .supportTeam{
     height:45%;
 }
@@ -92,12 +97,6 @@
 }
 .contactWays i{
     font-size: 50px;
-}
-.customerSupportContainer{
-    height:100vh;
-    flex:1;
-    margin-left:300px;
-    background: white;
 }
 .askQuestion{
     height:55%;

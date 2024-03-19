@@ -2,10 +2,19 @@
     <div class="landingPageContainer">
         <h1>Budgeting Made Easy for Your Busy Life!</h1>
         <p>Life's full of surprises - groceries, date nights, unexpected road trip mishaps. WiseWallet has you covered, so you can handle it all with ease.</p>
-        <button>Create Your Free Account</button>
+        <button @click="navigateToSignUp">Create Your Free Account</button>
     </div>
 </template>
-
+<script>
+export default {
+  methods: {
+    navigateToSignUp() {
+      // Programmatically navigate to the desired route
+      this.$router.push('/registration');
+    }
+  }
+}
+</script>
 <style scoped>
 .landingPageContainer {
     background: linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);

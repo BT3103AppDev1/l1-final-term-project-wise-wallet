@@ -1,22 +1,32 @@
 <template>
     <div class="navbar">
-        <a href="#" class="logo">WiseWallet</a>
+        <router-link to ='/' class="logo">WiseWallet</router-link>
         <input type="checkbox" id="check">
         <label for ="check" class="icons">
-            <button class="getStarted_btn" id="getStarted">Get started</button>
+            <button class="getStarted_btn" id="getStarted" @click="navigateToSignUp">Get started</button>
             <i class="bx bx-menu" id="menuOpen"></i>
             <i class = "bx bx-x" id="menuClose"></i>
         </label>
         <nav class="navItems">
             <a href="#">How it works</a>
-            <a href="#">FAQ</a>
+            <router-link to ='/faq' class="router-link">FAQ</router-link>
             <a href="#">Testimonials</a>
             <a href="#">About us</a>
-            <a href="#">Login</a>
-            <a href="#" class="getStarted_btn">Get started</a>
+            <router-link to ='/login' class="router-link">Login</router-link>
+            <a class="getStarted_btn" id="getStarted" @click="navigateToSignUp" >Get started</a>
         </nav>
     </div>
 </template>
+<script>
+export default {
+  methods: {
+    navigateToSignUp() {
+      // Programmatically navigate to the desired route
+      this.$router.push('/registration');
+    }
+  }
+}
+</script>
 <style>
 .navbar{
     width: 100%;
