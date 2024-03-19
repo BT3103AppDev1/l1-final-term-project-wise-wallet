@@ -2,7 +2,7 @@
     <div class="registrationPage-container">
         <div class="registration_Container">
             <h1>WiseWallet</h1>
-            <form action="#">
+            <form @submit.prevent="registerUser">
                 <div class="user-details">
                     <div class="input-box">
                         <label class="details">First Name:</label>
@@ -19,29 +19,32 @@
                     </div>
                     <div class="input-box">
                         <label class="details">Country:</label>
-                        <input type="text" v-model="userCountry" placeholder="Select country" required>
+                        <select v-model="userCountry" required>
+                            <option value="" disabled>Select country</option>
+                            <option v-for="country in countries" :key="country.code" :value="country.code">{{ country.name }}</option>
+                        </select>
                     </div>
                     <div class="input-box">
                         <label class="details">Password:</label>
-                        <input type="text" v-model="userPassword" placeholder="Password" required>
+                        <input type="password" v-model="userPassword" placeholder="Password" required>
                     </div>
                     <div class="input-box">
                         <label class="details">Confirm Password:</label>
-                        <input type="text" v-model="userPassword" placeholder="Re-type Password" required>
+                        <input type="password" v-model="userConfirmPassword" placeholder="Re-type Password" required>
                     </div>
                 </div>
-            </form>
             <div class="checkBox">
-                <input type="checkbox">
+                <input type="checkbox" required>
                 <span>I agree to the processing of personal data according to <a href="#">Privacy Policy</a></span>
             </div>
             <div class="checkBox">
-                <input type="checkbox">
+                <input type="checkbox" required>
                 <span>I acknowledge my name is correct and corresponds to the government-issued identification</span>
             </div>
             <div class="submitButton">
-                <button @click="submit">Submit</button>
+                <button type = "submit">Submit</button>
             </div>
+        </form>
         </div>
         <div class="tagline_register">
             <h1>
@@ -55,6 +58,104 @@
         </div>
     </div>
 </template>
+<script>
+import { initializeApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword,sendEmailVerification } from 'firebase/auth';
+
+// Initialize Firebase app
+const firebaseConfig = {
+    apiKey: "AIzaSyCzjdxLvhDyf6QoRXezNOgT2Ngv5nv_faI",
+    authDomain: "wisewallet-936df.firebaseapp.com",
+    projectId: "wisewallet-936df",
+    storageBucket: "wisewallet-936df.appspot.com",
+    messagingSenderId: "790531231270",
+    appId: "1:790531231270:web:2fefa620fb2a0e8b4560e7",
+    measurementId: "G-24ECY391EE"
+  };
+
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+
+export default {
+  data() {
+    return {
+      firstName: '',
+      lastName: '',
+      userEmail: '',
+      userPassword: '',
+      userCountry: '',
+      userConfirmPassword: '',
+      countries:[]
+    };
+  },
+  async created() {
+    this.countries = await this.fetchCountries();
+  },
+  methods: {
+    async fetchCountries() {
+        try {
+            const response = await fetch('https://restcountries.com/v3.1/all');
+            const data = await response.json();
+            const countries = data.map(country => ({ name: country.name.common, code: country.cca2 }));
+            // Sort the countries array alphabetically by country name
+            countries.sort((a, b) => a.name.localeCompare(b.name));
+        return countries;
+        } catch (error) {
+            console.error('Error fetching countries:', error);
+            return [];
+        }
+    },
+
+    validatePassword(password) {
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/;
+      return passwordRegex.test(password);
+    },
+
+    registerUser() {
+      if (this.userPassword !== this.userConfirmPassword) {
+        alert('Passwords do not match.');
+        return;
+      }
+      if (!this.validatePassword(this.userPassword)) {
+        alert('Passwords must contain at least one lowercase letter, one uppercase letter, one digit, one special character (such as @$!%*?&), and be between 8 and 16 characters in length.');
+        return;
+      }
+
+      createUserWithEmailAndPassword(auth, this.userEmail, this.userPassword)
+        .then((userCredential) => {
+
+          // Send email verification request
+          sendEmailVerification(auth.currentUser)
+            .then(() => {
+              // Email verification request sent
+              console.log('Email verification request sent.');
+              alert('A verification email has been sent to your email address. Please verify your email to complete registration.');
+            })
+            .catch((error) => {
+              // Handle errors
+              console.error('Email verification request error:', error.message);
+              alert('Failed to send verification email. Please try again later.');
+            });
+
+          // Optionally, you can perform additional actions here, such as redirecting to another page
+        })
+        .catch((error) => {
+          // Handle registration errors
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          console.error('Registration error:', errorMessage);
+          alert(errorMessage);
+        });
+        this.firstName= '';
+        this.lastName= '';
+        this.userEmail= '';
+        this.userPassword= '';
+        this.userCountry= '';
+        this.userConfirmPassword= '';    
+    }
+  }
+};
+</script>
 <style scoped>
 .registrationPage-container{
     background:white;
@@ -103,7 +204,7 @@
     font-weight:500;
     margin-bottom: 5px;
 }
-.user-details .input-box input {
+.user-details .input-box input, .user-details .input-box select{
     height:45px;
     width:100%;
     outline:none;
