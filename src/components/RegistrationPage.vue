@@ -34,11 +34,11 @@
                     </div>
                 </div>
             <div class="checkBox">
-                <input type="checkbox" required>
+                <input type="checkbox" v-model="agreeProcessing" required>
                 <span>I agree to the processing of personal data according to <a href="#">Privacy Policy</a></span>
             </div>
             <div class="checkBox">
-                <input type="checkbox" required>
+                <input type="checkbox" v-model="acknowledgeName" required>
                 <span>I acknowledge my name is correct and corresponds to the government-issued identification</span>
             </div>
             <div class="submitButton">
@@ -59,22 +59,8 @@
     </div>
 </template>
 <script>
-import { initializeApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword,sendEmailVerification } from 'firebase/auth';
-
-// Initialize Firebase app
-const firebaseConfig = {
-    apiKey: "AIzaSyCzjdxLvhDyf6QoRXezNOgT2Ngv5nv_faI",
-    authDomain: "wisewallet-936df.firebaseapp.com",
-    projectId: "wisewallet-936df",
-    storageBucket: "wisewallet-936df.appspot.com",
-    messagingSenderId: "790531231270",
-    appId: "1:790531231270:web:2fefa620fb2a0e8b4560e7",
-    measurementId: "G-24ECY391EE"
-  };
-
-const firebaseApp = initializeApp(firebaseConfig);
-const auth = getAuth(firebaseApp);
+import {createUserWithEmailAndPassword,sendEmailVerification } from 'firebase/auth';
+import {auth} from '@/assets/firebase.js';
 
 export default {
   data() {
@@ -85,7 +71,9 @@ export default {
       userPassword: '',
       userCountry: '',
       userConfirmPassword: '',
-      countries:[]
+      countries:[],
+      agreeProcessing: false,
+      acknowledgeName: false
     };
   },
   async created() {
@@ -151,7 +139,9 @@ export default {
         this.userEmail= '';
         this.userPassword= '';
         this.userCountry= '';
-        this.userConfirmPassword= '';    
+        this.userConfirmPassword= '';
+        this.agreeProcessing = false;
+        this.acknowledgeName = false;    
     }
   }
 };

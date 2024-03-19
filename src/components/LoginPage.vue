@@ -3,7 +3,7 @@
         <div class="LoginMainPage">
             <h1>WiseWallet</h1><br>
             <h2>Account Login</h2>
-            <form>
+            <form @submit.prevent="login">
                 <div class="user-details">
                     <div class="input-box">
                         <label class="details">E-mail:</label>
@@ -11,11 +11,11 @@
                     </div>
                     <div class="input-box">
                         <label class="details">Password:</label>
-                        <input type="text" v-model="userPassword" placeholder="Enter your password here." required>
+                        <input type="password" v-model="userPassword" placeholder="Enter your password here." required>
                     </div>
                     <div class="remember">
                         <div class="checkBox">
-                            <input type="checkbox">
+                            <input type="checkbox" v-model="rememberMe">
                             <span>Remember Me</span>
                         </div>
                         <div class="forget">
@@ -23,18 +23,53 @@
                         </div>
                     </div>
                     <div class="submitButton">
-                <button @click="submit">Submit</button>
+                <button type ="submit">Submit</button>
             </div>
             <div class="DontHave">
                 <span>Don't have an Account?</span>
-                <a href="#">Register</a>
+                <router-link to ='/registration' class="router-link">Register</router-link>
             </div>
             </div>
             </form>
         </div>
-
     </div>
 </template>
+<script>
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import {auth} from '@/assets/firebase.js';
+export default {
+  data() {
+    return {
+      userEmail: '',
+      userPassword: '',
+      rememberMe: false
+    };
+  },
+  methods: {
+    login() {
+      signInWithEmailAndPassword(auth, this.userEmail, this.userPassword)
+        .then((userCredential) => {
+          // User logged in successfully
+          const user = userCredential.user;
+          console.log('User logged in:', user);
+          this.$router.push('/dashboard');
+          // Optionally, you can redirect the user to another page
+        })
+        .catch((error) => {
+          // Handle login errors
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          console.error('Login error:', errorMessage);
+          // Optionally, you can display an error message to the user
+          alert("Invalid Credentials")
+        });
+        this.userEmail = '';
+        this.userPassword = '';
+        this.rememberMe = false;
+    }
+  }
+};
+</script>
 <style scoped>
 .LoginForm{
     display:flex;
