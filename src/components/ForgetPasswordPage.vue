@@ -2,25 +2,12 @@
     <div class="LoginForm Container">
         <div class="LoginMainPage">
             <h1>WiseWallet</h1><br>
-            <h2>Account Login</h2>
-            <form @submit.prevent="login">
+            <h2>Reset Password</h2>
+            <form @submit.prevent="forgetPassword">
                 <div class="user-details">
                     <div class="input-box">
                         <label class="details">E-mail:</label>
                         <input type="text" v-model="userEmail" placeholder="Type your email here." required>
-                    </div>
-                    <div class="input-box">
-                        <label class="details">Password:</label>
-                        <input type="password" v-model="userPassword" placeholder="Enter your password here." required>
-                    </div>
-                    <div class="remember">
-                        <div class="checkBox">
-                            <input type="checkbox" v-model="rememberMe">
-                            <span>Remember Me</span>
-                        </div>
-                        <div class="forget">
-                            <router-link to ='/resetPassword' class="router-link">Forget Password</router-link>
-                        </div>
                     </div>
                     <div class="submitButton">
                 <button type ="submit">Submit</button>
@@ -35,37 +22,34 @@
     </div>
 </template>
 <script>
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { sendPasswordResetEmail } from 'firebase/auth';
 import {auth} from '@/assets/firebase.js';
 export default {
   data() {
     return {
-      userEmail: '',
-      userPassword: '',
-      rememberMe: false
+      userEmail: ''
     };
   },
   methods: {
-    login() {
-      signInWithEmailAndPassword(auth, this.userEmail, this.userPassword)
-        .then((userCredential) => {
-          // User logged in successfully
-          const user = userCredential.user;
-          console.log('User logged in:', user);
-          this.$router.push('/dashboard');
-          // Optionally, you can redirect the user to another page
+    forgetPassword() {
+      sendPasswordResetEmail(auth, this.userEmail)
+        .then(() => {
+          // Password reset email sent successfully
+          console.log('Password reset email sent successfully.');
+          // Optionally, inform the user that the email has been sent
+          alert("Password reset email sent successfully. Check your inbox.");
+          this.$router.push('/login');
         })
         .catch((error) => {
-          // Handle login errors
-          const errorCode = error.code;
+          // Handle errors
           const errorMessage = error.message;
-          console.error('Login error:', errorMessage);
-          // Optionally, you can display an error message to the user
-          alert("Invalid Credentials")
+          console.error('Error sending password reset email:', errorMessage);
+          // Optionally, display an error message to the user
+          alert("Invalid Email");
         });
-        this.userEmail = '';
-        this.userPassword = '';
-        this.rememberMe = false;
+      
+      // Reset the email field after sending the email
+      this.userEmail = '';
     }
   }
 };
@@ -143,19 +127,10 @@ br{
 .user-details .input-box input:valid{
 border-color: #9b59b6;
 }
-.remember{
-    display: flex;
-    justify-content: space-between;
-}
-.checkBox{
-    padding:0.5rem;
-}
-.checkBox span{
-    margin:0.5rem;
-}
 button {
     width: 100%;
     padding: 8px;
+    margin-top:10px;
     margin-bottom: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
