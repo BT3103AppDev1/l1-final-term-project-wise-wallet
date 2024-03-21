@@ -24,7 +24,7 @@
                     </div>
                     <div class="emailIcon">
                         <i class='bx bxs-envelope' ></i>
-                        <h4>LimAhBeng@gmail.com</h4>
+                        <h4 id = 'userEmail'></h4>
                     </div>
                 </div>
                 <div class="personalProfile">
@@ -33,15 +33,15 @@
                         <i class='bx bxs-user-detail' ></i>
                         <h3>Personal Information</h3>
                     </div>
-                    <form action="#">
+                    <form @submit.prevent="savePersonalInfo">
                         <div class="user-details">
                             <div class="input-box">
                                 <label class="details">First Name:</label>
-                                <input type="text" v-model="firstName" placeholder="Lim" required>
+                                <input type="text" v-model="firstName" required>
                             </div>
                             <div class="input-box">
                                 <label class="details">Last Name:</label>
-                                <input type="text" v-model="lastName" placeholder="Ah Beng" required>
+                                <input type="text" v-model="lastName" required>
                             </div>
                             <div class="input-box">
                                 <label class="details">Gender:</label>
@@ -52,8 +52,9 @@
                             </div>
                             <div class="input-box">
                                 <label class="details">Country:</label>
-                                <select v-model="selectedCountry">
-                                <option value="Singapore">Singapore</option>
+                                <select v-model="selectedCountry" required>
+                                    <option value="" disabled>Select country</option>
+                                    <option v-for="country in countries" :key="country.code" :value="country.code">{{ country.name }}</option>
                                 </select>
                             </div>
                             <div class="input-box">
@@ -87,14 +88,122 @@
                                 </select>
                             </div>
                         </div>
-                    </form>
-                    <div class="saveButton">
-                        <button @save="submit">Save</button>
+                        <div class="saveButton">
+                        <button type ="submit">Save</button>
                     </div>
+                    </form>
                 </div>
             </div>
     </div>
 </template>
+<script>
+import {auth, db} from '@/assets/firebase.js';
+import {ref, set, get} from 'firebase/database';
+import {updateProfile } from 'firebase/auth';
+export default {
+  data() {
+    return {
+        firstName: '',
+        lastName: '',
+        selectedGender: '',
+        selectedCountry: '',
+        selectedCity: '',
+        selectedStreet: '',
+        selectedPostalCode: '',
+        selectedPhone: '',
+        selectedOccupation: '',
+        countries:[],
+        selectedIncomeRange: ''
+    };
+  },
+  mounted() {
+    const currentUser = auth.currentUser;
+    console.log(currentUser.displayName)
+    // Update the email in the h4 element
+    document.getElementById('userEmail').innerText = currentUser.email;
+      // Populate user data
+    const uid = currentUser.uid;
+    // Create a reference to the user's data in the database
+    const userRef = ref(db, 'users/' + currentUser.uid);
+
+    // Fetch user data
+    get(userRef)
+      .then(snapshot => {
+        const userData = snapshot.val();
+        if (userData) {
+          this.firstName = userData.firstName;
+          this.lastName = userData.lastName;
+          this.selectedGender = userData.gender;
+          this.selectedCountry = userData.country;
+          this.selectedCity = userData.city;
+          this.selectedStreet = userData.street;
+          this.selectedPostalCode = userData.postalCode;
+          this.selectedPhone = userData.phone;
+          this.selectedOccupation = userData.occupation;
+          this.selectedIncomeRange = userData.incomeRange;          
+        // Populate other data properties if needed
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching user data:', error);
+      });
+  },
+  async created() {
+    this.countries = await this.fetchCountries();
+  },
+  methods:{
+    async fetchCountries() {
+        try {
+            const response = await fetch('https://restcountries.com/v3.1/all');
+            const data = await response.json();
+            const countries = data.map(country => ({ name: country.name.common, code: country.cca2 }));
+            // Sort the countries array alphabetically by country name
+            countries.sort((a, b) => a.name.localeCompare(b.name));
+        return countries;
+        } catch (error) {
+            console.error('Error fetching countries:', error);
+            return [];
+        }
+    },
+    savePersonalInfo(){
+        const currentUser = auth.currentUser;
+        const firstName = this.firstName;
+        const lastName = this.lastName ;
+        const selectedGender = this.selectedGender ;
+        const selectedCountry = this.selectedCountry ;
+        const selectedCity = this.selectedCity ;
+        const selectedStreet = this.selectedStreet ;
+        const selectedPostalCode = this.selectedPostalCode ;
+        const selectedPhone = this.selectedPhone ;
+        const selectedOccupation = this.selectedOccupation ;
+        const selectedIncomeRange = this.selectedIncomeRange ;
+
+        updateProfile(currentUser, {
+            displayName: firstName + ' ' + lastName,
+        })
+        // Save additional user data to the database
+        set(ref(db, 'users/' + currentUser.uid), {
+                    firstName: firstName,
+                    lastName: lastName,
+                    country: selectedCountry,
+                    gender: selectedGender,
+                    city: selectedCity,
+                    street: selectedStreet,
+                    postalCode: selectedPostalCode,
+                    phone: selectedPhone,
+                    occupation: selectedOccupation,
+                    incomeRange: selectedIncomeRange
+                })
+                .then(() => {
+                    console.log('User data saved successfully');
+                    alert('User data saved successfully')
+                })
+                .catch((error) => {
+                    console.error('Error saving user data:', error);
+                });
+    }
+}}
+</script>
 <style scoped>
 .ProfilePage-container{
     height:100vh;

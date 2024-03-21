@@ -59,8 +59,9 @@
     </div>
 </template>
 <script>
-import {createUserWithEmailAndPassword,sendEmailVerification } from 'firebase/auth';
-import {auth} from '@/assets/firebase.js';
+import {createUserWithEmailAndPassword,sendEmailVerification, updateProfile } from 'firebase/auth';
+import {ref, set } from 'firebase/database';
+import {auth,db} from '@/assets/firebase.js';
 
 export default {
   data() {
@@ -100,51 +101,90 @@ export default {
     },
 
     registerUser() {
-      if (this.userPassword !== this.userConfirmPassword) {
+        const email = this.userEmail;
+        const firstName = this.firstName;
+        const lastName = this.lastName;
+        const country = this.userCountry
+        if (this.userPassword !== this.userConfirmPassword) {
         alert('Passwords do not match.');
         return;
-      }
-      if (!this.validatePassword(this.userPassword)) {
+        }
+        if (!this.validatePassword(this.userPassword)) {
         alert('Passwords must contain at least one lowercase letter, one uppercase letter, one digit, one special character (such as @$!%*?&), and be between 8 and 16 characters in length.');
         return;
-      }
+        }
 
-      createUserWithEmailAndPassword(auth, this.userEmail, this.userPassword)
+        createUserWithEmailAndPassword(auth, this.userEmail, this.userPassword)
         .then((userCredential) => {
-
-          // Send email verification request
-          sendEmailVerification(auth.currentUser)
+        // Update user profile with additional details
+            updateProfile(userCredential.user, {
+            displayName: firstName + ' ' + lastName,
+            email: email
+            })
             .then(() => {
-              // Email verification request sent
-              console.log('Email verification request sent.');
-              alert('A verification email has been sent to your email address. Please verify your email to complete registration.');
+                console.log(userCredential.user.uid)
+                // Save additional user data to the database
+                set(ref(db, 'users/' + userCredential.user.uid), {
+                    firstName: firstName,
+                    lastName: lastName,
+                    country: country
+                })
+                .then(() => {
+                    console.log('User data saved successfully');
+                })
+                .catch((error) => {
+                    console.error('Error saving user data:', error);
+                });
+
+                // Log the updated user profile details
+                console.log('User profile updated successfully:');
+                console.log('Display Name:', userCredential.user.email);
+                console.log('First Name:', firstName);
+                console.log('Last Name:', lastName);
+                console.log('Country:', country);
+
+                // Send email verification request
+                sendEmailVerification(auth.currentUser)
+                .then(() => {
+                    // Email verification request sent
+                    console.log('Email verification request sent.');
+                    alert('A verification email has been sent to your email address. Please verify your email to complete registration.');
+                    this.$router.push('/login');
+                })
+                .catch((error) => {
+                    // Handle errors
+                    console.error('Email verification request error:', error.message);
+                    alert('Failed to send verification email. Please try again later.');
+                });
+
+                // Optionally, you can perform additional actions here, such as redirecting to another page
+                })
+                .catch((error) => {
+                    // Handle updateProfile error
+                    console.error('Error updating profile:', error.message);
+                    alert('Failed to update user profile. Please try again later.');
+                });
             })
             .catch((error) => {
-              // Handle errors
-              console.error('Email verification request error:', error.message);
-              alert('Failed to send verification email. Please try again later.');
+            // Handle registration errors
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            console.error('Registration error:', errorMessage);
+            alert(errorMessage);
             });
 
-          // Optionally, you can perform additional actions here, such as redirecting to another page
-        })
-        .catch((error) => {
-          // Handle registration errors
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          console.error('Registration error:', errorMessage);
-          alert(errorMessage);
-        });
-        this.firstName= '';
-        this.lastName= '';
-        this.userEmail= '';
-        this.userPassword= '';
-        this.userCountry= '';
-        this.userConfirmPassword= '';
-        this.agreeProcessing = false;
-        this.acknowledgeName = false;    
-    }
-  }
-};
+            // Reset form fields
+            this.firstName= '';
+            this.lastName= '';
+            this.userEmail= '';
+            this.userPassword= '';
+            this.userCountry= '';
+            this.userConfirmPassword= '';
+            this.agreeProcessing = false;
+            this.acknowledgeName = false;
+            }
+        }
+    };
 </script>
 <style scoped>
 .registrationPage-container{
