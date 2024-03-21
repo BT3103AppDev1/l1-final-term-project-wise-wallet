@@ -1,23 +1,4 @@
 <template>
-    <!--
-    <div class="navbar">
-        <a href="#" class="logo">WiseWallet</a>
-        <input type="checkbox" id="check">
-        <label for ="check" class="icons">
-            <button class="getStarted_btn" id="getStarted">Get started</button>
-            <i class="bx bx-menu" id="menuOpen"></i>
-            <i class = "bx bx-x" id="menuClose"></i>
-        </label>
-        <nav class="navItems">
-            <a href="#">How it works</a>
-            <a href="#">FAQ</a>
-            <a href="#">Testimonials</a>
-            <a href="#">About us</a>
-            <a href="#">Client Area</a>
-            <a href="#" class="getStarted_btn">Get started</a>
-        </nav>
-    </div>
--->
 <div class="navigationContainer">
     <div class="sidebar">
         <div class="sidebar-item">
@@ -63,8 +44,8 @@
             <div class="profileStuff">
                 <i class='bx bx-user-circle'></i>
                 <div class="profileInfo">
-                    <h3>Lim Ah Beng</h3>
-                    <p>LimAhBeng@gmail.com</p>
+                    <h3 id = "displayName"></h3>
+                    <p id = 'userEmail'>LimAhBeng@gmail.com</p>
                 </div>
             </div>
             <div class="profileStuff">
@@ -96,6 +77,32 @@
     </div>
     </div>
 </template>
+<script>
+import {auth} from '@/assets/firebase.js';
+export default {
+    mounted() {
+        const currentUser = auth.currentUser;
+        // Update the email
+        document.getElementById('displayName').innerText = currentUser.displayName;
+        document.getElementById('userEmail').innerText = currentUser.email;
+    },
+    methods:{
+        logOut(){
+            auth.signOut()
+            .then(() => {
+            // Sign-out successful.
+            console.log("User logged out successfully");
+            alert("User logged out successfully")
+            this.$router.push('/')
+        })
+        .catch((error) => {
+        // An error happened.
+            console.error("Error logging out:", error);
+        });
+        }
+    }
+}
+</script>
 <style>
 .sidebar {
     width: 300px;

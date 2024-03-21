@@ -24,7 +24,7 @@
                     </div>
                     <div class="emailIcon">
                         <i class='bx bxs-envelope' ></i>
-                        <h4 id = 'userEmail'></h4>
+                        <h4 id = 'userEmail_profile'></h4>
                     </div>
                 </div>
                 <div class="personalProfile">
@@ -120,7 +120,7 @@ export default {
     const currentUser = auth.currentUser;
     console.log(currentUser.displayName)
     // Update the email in the h4 element
-    document.getElementById('userEmail').innerText = currentUser.email;
+    document.getElementById('userEmail_profile').innerText = currentUser.email
       // Populate user data
     const uid = currentUser.uid;
     // Create a reference to the user's data in the database
@@ -211,6 +211,7 @@ export default {
     flex:1;
     margin-left:300px;
     margin-top:90px;
+    position:fixed;
 }
 .ProfilePage-container h1{
     padding:1rem;

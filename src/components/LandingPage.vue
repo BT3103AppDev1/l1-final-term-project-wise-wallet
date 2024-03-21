@@ -24,6 +24,8 @@ export default {
     justify-content: center;
     align-items: center;
     text-align: center;
+    position:fixed;
+    width:100%
 }
 
 h1 {
