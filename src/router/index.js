@@ -7,6 +7,8 @@ import FAQ from '@/before-login/FAQ.vue'
 import resetPassword from '@/before-login/ForgetPassword.vue'
 
 import Dashboard from '@/after-login/Dashboard.vue'
+import profilePage from '@/after-login/ProfilePage.vue'
+import myBudget from '@/after-login/BudgetManagementPage.vue'
 const routes = [
 {
     path: '/',
@@ -37,7 +39,17 @@ const routes = [
     path:'/resetPassword',
     name:'reset-password',
     component:resetPassword
-}
+},
+{
+    path:'/myBudget',
+    name:'my-budget',
+    component:myBudget
+},
+{
+    path:'/myProfile',
+    name:'profile-page',
+    component:profilePage
+},
 ]
 const router = createRouter({
 history: createWebHistory(),

@@ -4,19 +4,19 @@
         <div class="sidebar-item">
             <i class='bx bx-wallet' ></i>
                 <div class="profileInfo">
-                    <a href="#budget-settings">My Budget</a>
+                    <router-link to ='/myBudget' class="router-link">My Budget</router-link>
                 </div>
         </div>
         <div class="sidebar-item">
             <i class='bx bxs-plane-take-off' ></i>
                 <div class="profileInfo">
-                    <a href="#expenses-breakdown">My Expenses</a>
+                    <router-link to ='/myBudget' class="router-link">My Expenses</router-link>
                 </div>
         </div>
         <div class="sidebar-item">
             <i class='bx bxs-user-detail' ></i>
                 <div class="profileInfo">
-                    <a href="#analytics">My Profile</a>
+                    <router-link to ='/myProfile' class="router-link">My Profile</router-link>
                 </div>
         </div>
         <div class="sidebar-item">

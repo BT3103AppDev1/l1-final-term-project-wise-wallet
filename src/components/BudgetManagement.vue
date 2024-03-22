@@ -82,6 +82,7 @@
     background: white;
     flex:1;
     margin-left:300px;
+    margin-top:90px;
 }
 .budgetTitle{
     padding:2rem;
