@@ -211,7 +211,7 @@ export default {
     flex:1;
     margin-left:300px;
     margin-top:90px;
-    position:fixed;
+    position:relative;
 }
 .ProfilePage-container h1{
     padding:1rem;

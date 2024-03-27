@@ -1,30 +1,38 @@
 <template>
 <div class="navigationContainer">
     <div class="sidebar">
+        <router-link to ='/myBudget' class="router-link" style="text-decoration: none;">
         <div class="sidebar-item">
             <i class='bx bx-wallet' ></i>
                 <div class="profileInfo">
-                    <router-link to ='/myBudget' class="router-link">My Budget</router-link>
+                    <a>My Budget</a>
                 </div>
         </div>
+        </router-link>
+        <router-link to ='/myExpenses' class="router-link" style="text-decoration: none;">
         <div class="sidebar-item">
             <i class='bx bxs-plane-take-off' ></i>
                 <div class="profileInfo">
-                    <router-link to ='/myBudget' class="router-link">My Expenses</router-link>
+                    <a>My Expenses</a>
                 </div>
         </div>
+        </router-link>
+        <router-link to ='/myProfile' class="router-link" style="text-decoration: none;">
         <div class="sidebar-item">
             <i class='bx bxs-user-detail' ></i>
                 <div class="profileInfo">
-                    <router-link to ='/myProfile' class="router-link">My Profile</router-link>
+                    <a>My Profile</a>
                 </div>
         </div>
+        </router-link>
+        <router-link to ='/myProfile' class="router-link" style="text-decoration: none;">
         <div class="sidebar-item">
             <i class='bx bx-help-circle' ></i>
                 <div class="profileInfo">
-                    <a href="#customer-support">Customer Support</a>
+                    <a>Customer Support</a>
                 </div>
         </div>
+        </router-link>
         <div class="sidebar-item">
             <i class='bx bx-group'></i>
                 <div class="profileInfo">
