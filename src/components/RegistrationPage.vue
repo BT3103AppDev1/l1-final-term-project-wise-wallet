@@ -54,7 +54,7 @@
                 <i class='bx bx-wallet'>Uncover an additional $88 right before your eyes</i><br>
                 <i class='bx bxs-credit-card' >Slash your monthly expenses by a remarkable 10%</i><br>
                 <i class='bx bx-bed' >Experience 10 times better sleep quality</i>
-                <img src='/Users/zhantingtoh/BudgetTracker/src/assets/Picture 1.png'>
+                <img src='/src/assets/Picture 1.png'>
         </div>
     </div>
 </template>

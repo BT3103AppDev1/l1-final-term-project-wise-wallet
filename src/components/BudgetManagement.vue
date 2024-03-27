@@ -139,7 +139,7 @@
     font-size:24px;
     font-weight:500;
 }
-.budgetNav i{
+.budget  i{
     margin-right:0.5rem;
     font-size:26px;
 }
