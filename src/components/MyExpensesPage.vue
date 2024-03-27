@@ -43,6 +43,10 @@
 
 
     <div class="right-panel">
+      <div class="filter-transaction-header">
+        <h2>Filter Transaction</h2>
+        <button class="reset-button">Reset</button>
+      </div>
       <div class="filters-container">
         <div class="filter-section">
             <h2>Filter By: </h2> 
@@ -74,7 +78,6 @@
     </div>
         </div>
 
-
   </template>
   
     <style scoped>
@@ -88,6 +91,20 @@
   margin-left: 300px; 
   margin-top: 100px;
 }
+.filter-transaction-header {
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px; /* Space between this header and the filter section */
+  }
+
+  .reset-button {
+    background-color: #EBEBEB; /* Light grey background for the reset button */
+    color: #333; /* Dark text color for contrast */
+    border: none;
+    border-radius: 15px;
+    padding: 5px 15px;
+    cursor: pointer;
+  }
 
 .top-container {
     display: flex;
