@@ -98,36 +98,8 @@
                 <div class="transaction-amount" :class="transaction.transactionAmount < 0 ? 'negative' : 'positive'">${{ Math.abs(transaction.transactionAmount) }}</div>
               </div>
             </div>
-          <!-- Today's Transactions -->
-            <div class="day-section">
-              <h2>Today</h2>
-              <div class="transaction-item">
-                <div class="transaction-icon shopping-icon"></div>
-                  <div class="transaction-description">
-                    <span class="transaction-title">Shopping</span>
-                    <span class="transaction-subtitle">Buy some grocery</span>
-                  </div>
-                <div class="transaction-amount negative">- $120</div>
-              </div>
-              <!-- More transactions... -->
-            </div>
-
-
-      <!-- Yesterday's Transactions -->
-      <div class="day-section">
-        <h2>Yesterday</h2>
-        <div class="transaction-item">
-          <div class="transaction-icon salary-icon"></div>
-          <div class="transaction-description">
-            <span class="transaction-title">Salary</span>
-            <span class="transaction-subtitle">Salary for July</span>
           </div>
-          <div class="transaction-amount positive">+ $5000</div>
         </div>
-        <!-- More transactions... -->
-      </div>
-    </div>
-</div>
 
 
     <div class="right-panel">
