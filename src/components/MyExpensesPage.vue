@@ -4,8 +4,8 @@
         <div class="top-container">
           <div class="header">
             <div class="search-container">
-              <input type="text" class="search-box" placeholder="Search" />
-            </div>
+               <input type="text" class="search-box" placeholder="Search" v-model="searchTerm" />
+                  </div>
             <button id="add-new-button" class="add-button" @click="toggleTransactionForm">
               {{ showTransactionForm ? '-' : '+' }} {{ showTransactionForm ? 'Hide' : 'Add' }}
             </button>
@@ -76,7 +76,7 @@
           <!-- Today's Transactions -->
           <div class ='day-section'>
             <h2>Today</h2>
-            <div class = "transaction-item" v-for="transaction in todayTransactions" :key="transaction.id">
+            <div class="transaction-item" v-for="transaction in filteredTodayTransactions" :key="transaction.id">
               
               <div class="transaction-icon shopping-icon"></div>
               
@@ -93,7 +93,7 @@
           <!-- Yesterday's Transactions -->
           <div class ='day-section'>
             <h2>Yesterday</h2>
-            <div class = "transaction-item" v-for="transaction in yesterdayTransactions" :key="transaction.id">
+            <div class="transaction-item" v-for="transaction in filteredYesterdayTransactions" :key="transaction.id">
               <div class="transaction-icon shopping-icon"></div>
               <div class="transaction-description">
                 <span class="transaction-title">{{ transaction.transactionCategory }}</span>
@@ -164,6 +164,7 @@ data() {
       yesterdayTransactions: [],
       isInEditMode: false,
       selectedTransaction: null,
+      searchTerm: '',
   };
 },
 mounted(){
@@ -294,7 +295,27 @@ fetchTransactions() {
       this.transactionVendor = '';
       this.transactionPaymentMethod = '';
     },
+      },
+    computed: {
+      filteredTodayTransactions() {
+        if (!this.searchTerm.trim()) return this.todayTransactions;
+        return this.todayTransactions.filter((transaction) => {
+          return transaction.transactionDescription.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                transaction.transactionCategory.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                transaction.transactionVendor.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                transaction.transactionPaymentMethod.toLowerCase().includes(this.searchTerm.toLowerCase());
+        });
+      },
+      filteredYesterdayTransactions() {
+        if (!this.searchTerm.trim()) return this.yesterdayTransactions;
+        return this.yesterdayTransactions.filter((transaction) => {
+          return transaction.transactionDescription.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                transaction.transactionCategory.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                transaction.transactionVendor.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                transaction.transactionPaymentMethod.toLowerCase().includes(this.searchTerm.toLowerCase());
+        });
       }
+    } 
 }
 </script>
 <style scoped>    
