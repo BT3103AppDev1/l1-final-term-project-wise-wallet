@@ -53,8 +53,9 @@
                   <label class="details">Payment Method:</label>
                   <select v-model="transactionPaymentMethod" required>
                     <option value="Cash">Cash</option>
-                    <option value="Credit Card">Credit Card</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
                     <option value="Debit Card">Debit Card</option>
+                    <option value="Credit Card">Credit Card</option>
                   </select>
                 </div>
                 <!-- Location -->
@@ -83,11 +84,11 @@
               <div class="transaction-description">
                 <span class="transaction-title">{{ transaction.transactionCategory }}</span>
                 <span class="transaction-subtitle">{{ transaction.transactionDescription }}</span> <br>
-                <span class="transaction-subtitle">{{ transaction.transactionPaymentMethod }}</span> <br>
                 <span class="transaction-subtitle">{{ transaction.transactionVendor }}</span>
               </div>
               <button id="edit-button" class="edit-button" @click="selectTransactionForEdit(transaction)"> {{ isInEditMode ? ' Edit' : 'Edit' }}</button>
               <div class="transaction-amount" :class="transaction.transactionAmount < 0 ? 'negative' : 'positive'">${{ Math.abs(transaction.transactionAmount).toFixed(2) }}</div>
+              <span class="transaction-subtitle">{{ transaction.transactionPaymentMethod }}</span>
             </div>
           </div>
           <!-- Yesterday's Transactions -->
@@ -98,12 +99,12 @@
               <div class="transaction-description">
                 <span class="transaction-title">{{ transaction.transactionCategory }}</span>
                 <span class="transaction-subtitle">{{ transaction.transactionDescription }}</span> <br>
-                <span class="transaction-subtitle">{{ transaction.transactionPaymentMethod }}</span> <br>
                 <span class="transaction-subtitle">{{ transaction.transactionVendor }}</span>
               </div>
               <button id="edit-button" class="edit-button" @click="selectTransactionForEdit(transaction)"> {{ isInEditMode ? ' Edit' : 'Edit' }}</button>
 
-              <div class="transaction-amount" :class="transaction.transactionAmount < 0 ? 'negative' : 'positive'">${{ Math.abs(transaction.transactionAmount) }}</div>
+              <div class="transaction-amount" :class="transaction.transactionAmount < 0 ? 'negative' : 'positive'">${{ Math.abs(transaction.transactionAmount).toFixed(2) }}</div>
+              <span class="transaction-subtitle">{{ transaction.transactionPaymentMethod }}</span>
             </div>
           </div>
         </div>
