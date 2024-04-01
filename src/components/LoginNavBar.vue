@@ -33,12 +33,14 @@
                 </div>
         </div>
         </router-link>
+        <router-link to='/forum' class="router-link" style="text-decoration: none;">
         <div class="sidebar-item">
             <i class='bx bx-group'></i>
-                <div class="profileInfo">
-                    <a href="#forum">Forum Page</a>
-                </div>
+            <div class="profileInfo">
+            <a>Forum Page</a>
+            </div>
         </div>
+        </router-link>
     </div>
     <div class="loginNavBar">
         <a href="#" class="logo">WiseWallet</a>
