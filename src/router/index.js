@@ -10,6 +10,7 @@ import Dashboard from '@/after-login/Dashboard.vue'
 import profilePage from '@/after-login/ProfilePage.vue'
 import myBudget from '@/after-login/BudgetManagementPage.vue'
 import myExpenses from '@/after-login/MyExpensesPage.vue'
+import ForumPage from '@/after-login/ForumPage.vue'
 const routes = [
 {
     path: '/',
@@ -55,6 +56,11 @@ const routes = [
     path:'/myExpenses',
     name:'my-Expenses',
     component:myExpenses
+},
+{
+    path: '/forum',
+    name: 'forum-page',
+    component: ForumPage
 }
 ]
 const router = createRouter({
