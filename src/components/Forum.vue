@@ -58,19 +58,19 @@
     display: flex;
     padding-top: 90px; /* Adjust for loginnavbar */
     margin-left: 300px; /* Adjust for the left sidebar */
-    background: #fff; /* Set background to white */
+    background: #fff;
   }
   
   .posts-section {
     flex: 0 0 75%;
     padding: 20px;
-    background: #ccc; /* Set the background to light grey */
+    background: #ccc; 
   }
   
   .sidebar-section {
     flex: 0 0 25%;
     padding: 20px;
-    background: #ccc; /* Set the background to light grey */
+    background: #ccc; 
     height: calc(100vh - 90px);
     display: flex;
     flex-direction: column;
@@ -121,18 +121,18 @@
   }
   
   .button-group {
-    background: #bbb; /* Darker grey */
+    background: #bbb; 
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 20px;
-    flex: 1 0 33%; /* Take up 1/3 of the space */
+    flex: 1 0 33%; 
   }
   
   .tags-section {
-    background: #bbb; /* Darker grey */
+    background: #bbb; 
     padding: 20px;
     border-radius: 10px;
-    flex: 2 0 67%; /* Take up 2/3 of the space */
+    flex: 2 0 67%; 
   }
   
   .tags {
@@ -151,7 +151,5 @@
     color: white;
     transform: scale(1.05);
   }
-  
-  /* Additional styles and responsive adjustments as needed */
   </style>
   
