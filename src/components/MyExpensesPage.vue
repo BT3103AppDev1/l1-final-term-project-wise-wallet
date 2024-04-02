@@ -114,29 +114,41 @@
   <div class="right-panel">
     <div class="filter-transaction-header">
       <h2>Filter Transaction</h2>
-      <button class="reset-button">Reset</button>
+      <button class="reset-button" @click="resetFilters">Reset</button>
     </div>
     <div class="filters-container">
       <div class="filter-section">
           <h2>Filter By: </h2> 
-          <button class="filter-button">Income</button>
-          <button class="filter-button active">Expense</button>
-          <button class="filter-button">Transfer</button>
+          <button class="filter-button" @click="filterPaymentMethod = 'Bank Transfer'">Bank Transfer</button>
+          <button class="filter-button" @click="filterPaymentMethod = 'Credit Card'">Credit Card</button>
+          <button class="filter-button" @click="filterPaymentMethod = 'Debit Card'">Debit Card</button>
         </div>
         <div class="sort-section">
           <h2>Sort By:</h2>
-          <button class="sort-button">Highest</button>
-          <button class="sort-button">Lowest</button>
-          <button class="sort-button">Newest</button>
-          <button class="sort-button">Oldest</button>
+          <button class="sort-button" @click="filterSortBy = 'Highest'">Highest</button>
+          <button class="sort-button" @click="filterSortBy = 'Lowest'">Lowest</button>
+          <button class="sort-button" @click="filterSortBy = 'Category A-Z'">Category A-Z</button>
+          <button class="sort-button" @click="filterSortBy = 'Category Z-A'">Category Z-A</button>
         </div>
         <div class="category-section">
           <h2>Category:</h2>
-          <select class="category-select">
+          <select class="category-select" v-model="filterCategory">
             <option value="">Choose Category</option>
-            <!-- Categories go here -->
-          </select>
-          <button class="apply-button">Apply</button>
+                    <option value="Salary">Salary</option>
+                    <option value="Food">Food</option>
+                    <option value="Transportation">Transportation</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Housing">Housing</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Clothing">Clothing</option>
+                    <option value="Healthcare">Healthcare</option>
+                    <option value="Education">Education</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Gifts">Gifts</option>
+                    <option value="Insurance">Insurance</option>
+                    <option value="Investments">Investments</option>
+                    <option value="Charity">Charity</option>
+                    <option value="Other">Other</option>          </select>
       </div>
     <div class="status-message">
       <div class="status-icon"></div>
@@ -166,6 +178,9 @@ data() {
       isInEditMode: false,
       selectedTransaction: null,
       searchTerm: '',
+      filterPaymentMethod: '',
+      filterCategory: '',
+      filterSortBy: '',
   };
 },
 mounted(){
@@ -296,26 +311,66 @@ fetchTransactions() {
       this.transactionVendor = '';
       this.transactionPaymentMethod = '';
     },
+    resetFilters() {
+    this.filterPaymentMethod = '';
+    this.filterCategory = '';
+    this.filterSortBy = '';
+    this.searchTerm = '';
+    }
       },
     computed: {
       filteredTodayTransactions() {
-        if (!this.searchTerm.trim()) return this.todayTransactions;
-        return this.todayTransactions.filter((transaction) => {
-          return transaction.transactionDescription.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                transaction.transactionCategory.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                transaction.transactionVendor.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                transaction.transactionPaymentMethod.toLowerCase().includes(this.searchTerm.toLowerCase());
-        });
-      },
-      filteredYesterdayTransactions() {
-        if (!this.searchTerm.trim()) return this.yesterdayTransactions;
-        return this.yesterdayTransactions.filter((transaction) => {
-          return transaction.transactionDescription.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                transaction.transactionCategory.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                transaction.transactionVendor.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                transaction.transactionPaymentMethod.toLowerCase().includes(this.searchTerm.toLowerCase());
-        });
+          return this.todayTransactions
+            .filter(transaction => {
+              const matchesPaymentMethod = this.filterPaymentMethod ? transaction.transactionPaymentMethod === this.filterPaymentMethod : true;
+              const matchesCategory = this.filterCategory ? transaction.transactionCategory === this.filterCategory : true;
+              const matchesSearchTerm = this.searchTerm.trim() ? transaction.transactionDescription.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                                        transaction.transactionCategory.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                                        transaction.transactionVendor.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                                        transaction.transactionPaymentMethod.toLowerCase().includes(this.searchTerm.toLowerCase()) : true;
+              return matchesPaymentMethod && matchesCategory && matchesSearchTerm;
+            })
+            .sort((a, b) => {
+              if (this.filterSortBy === 'Highest') {
+                return parseFloat(b.transactionAmount) - parseFloat(a.transactionAmount);
+              } else if (this.filterSortBy === 'Lowest') {
+                return parseFloat(a.transactionAmount) - parseFloat(b.transactionAmount);
+              } else if (this.filterSortBy === 'Category A-Z') {
+        return a.transactionCategory.localeCompare(b.transactionCategory);
       }
+      // Sort by Category Alphabetically (Descending)
+      else if (this.filterSortBy === 'Category Z-A') {
+        return b.transactionCategory.localeCompare(a.transactionCategory);
+      }
+      return 0;
+            });
+        },
+        filteredYesterdayTransactions() {
+    return this.yesterdayTransactions
+      .filter(transaction => {
+        const matchesPaymentMethod = this.filterPaymentMethod ? transaction.transactionPaymentMethod === this.filterPaymentMethod : true;
+        const matchesCategory = this.filterCategory ? transaction.transactionCategory === this.filterCategory : true;
+        const matchesSearchTerm = this.searchTerm.trim() ? transaction.transactionDescription.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                                  transaction.transactionCategory.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                                  transaction.transactionVendor.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                                  transaction.transactionPaymentMethod.toLowerCase().includes(this.searchTerm.toLowerCase()) : true;
+        return matchesPaymentMethod && matchesCategory && matchesSearchTerm;
+      })
+      .sort((a, b) => {
+        if (this.filterSortBy === 'Highest') {
+          return parseFloat(b.transactionAmount) - parseFloat(a.transactionAmount);
+        } else if (this.filterSortBy === 'Lowest') {
+          return parseFloat(a.transactionAmount) - parseFloat(b.transactionAmount);
+        } else if (this.filterSortBy === 'Category A-Z') {
+        return a.transactionCategory.localeCompare(b.transactionCategory);
+      }
+      // Sort by Category Alphabetically (Descending)
+      else if (this.filterSortBy === 'Category Z-A') {
+        return b.transactionCategory.localeCompare(a.transactionCategory);
+      }
+      return 0;
+      });
+  }
     } 
 }
 </script>
