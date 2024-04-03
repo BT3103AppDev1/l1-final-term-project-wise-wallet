@@ -9,6 +9,7 @@ import resetPassword from '@/before-login/ForgetPassword.vue'
 import Dashboard from '@/after-login/Dashboard.vue'
 import profilePage from '@/after-login/ProfilePage.vue'
 import myBudget from '@/after-login/BudgetManagementPage.vue'
+import plannedPayments from '@/after-login/PlannedPayment.vue'
 import myExpenses from '@/after-login/MyExpensesPage.vue'
 import ForumPage from '@/after-login/ForumPage.vue'
 const routes = [
@@ -46,6 +47,11 @@ const routes = [
     path:'/myBudget',
     name:'my-budget',
     component:myBudget
+},
+{
+    path: '/plannedpayments',
+    name: 'plannedpayments',
+    component: plannedPayments
 },
 {
     path:'/myProfile',

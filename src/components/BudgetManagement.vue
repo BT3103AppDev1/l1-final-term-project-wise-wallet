@@ -14,7 +14,9 @@
             </div>
             <div class="budgetNav">
                 <i class='bx bx-credit-card-alt' ></i>
-                <h3>Planned payments</h3>
+                <router-link to ='/plannedpayments' class="router-link" style="text-decoration: none; color:inherit">
+                    <h3>Planned Payment</h3>
+                </router-link>
             </div>
             <div class="budgetNav">
                 <i class='bx bx-cog' ></i>
@@ -139,7 +141,7 @@
     font-size:24px;
     font-weight:500;
 }
-.budget  i{
+.budgetNav i{
     margin-right:0.5rem;
     font-size:26px;
 }
