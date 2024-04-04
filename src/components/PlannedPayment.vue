@@ -22,9 +22,23 @@
             </div>
         </div>
         <div class="totalPayment">
-            <div class="paymentLabel">
-                <h1>$1,800</h1>
-                <p>Monthly Scheduled Payment</p>
+            <div class="paymentAmount-container">
+                <div class="paymentLabel">
+                    <h1>{{ getTotalScheduledPayment() }}</h1>
+                    <p>Total Scheduled Payment</p>
+                </div>
+                <div class="paymentLabel">
+                    <h1>{{ getTotalAmount('Monthly') }}</h1>
+                    <p>Monthly Scheduled Payment</p>
+                </div>
+                <div class="paymentLabel">
+                    <h1>{{ getTotalAmount('Semi-annual') }}</h1>
+                    <p>Semi-Annual Scheduled Payment</p>
+                </div>
+                <div class="paymentLabel">
+                    <h1>{{ getTotalAmount('Annual') }}</h1>
+                    <p>Annual Scheduled Payment</p>
+                </div>
             </div>
             <i class="bx" :class="{ 'bx-plus': !showTransactionForm, 'bx-minus': showTransactionForm }" id="toggleButton" @click="toggleForm"></i>
         </div>
@@ -44,7 +58,7 @@
                     <option value="Insurance">Insurance</option>
                     <option value="Loan Installments">Loan Installments</option>
                     <option value="Mortgage/Rent">Mortgage/Rent</option>
-                    <option value="Subscription">Music and Entertainment Subscription</option>
+                    <option value="Music and Entertainment Subscription">Music and Entertainment Subscription</option>
                     <option value="Healthcare">Healthcare</option>
                     <option value="Education">Education</option>
                     <option value="Investments">Investments</option>
@@ -97,54 +111,34 @@
               
             </form>
         <div class="payment-list">
-            <div class="payment-item">
-                <div class="payment-left">
-                    <i class='bx bx-bus' ></i>
-                    <strong>Transportation</strong>
+            <div v-for = '(transactions,category) in groupedTransactions' :key="category" class="payment-container">
+                <div class = "payment-item" @click="toggleTransactionList(category)">
+                    <div class="payment-left">
+                        <i :class = "getIconClass(category)"></i>
+                        <strong>{{ category }}</strong>
+                    </div>
+                    <p><i class='bx bx-edit-alt'></i>Total Amount: ${{ transactions.totalAmount.toFixed(2) }}</p>
                 </div>
-                 <p><i class='bx bx-edit-alt' ></i>$50 (Due: 2024-03-10)</p>
-            </div>
-            <div class="payment-item">
-                <div class="payment-left">
-                    <i class='bx bx-shower' ></i>
-                    <strong>Utilities Bill</strong>
+                <div v-if="expandedCategory === category">
+                    <!-- Transactions list -->
+                    <div class = "transaction-list">
+                        <div v-for="transaction in transactions.transactions" :key="transaction.id" class="transaction-item">
+                            <p class="transaction-description">{{ transaction.transactionDescription }}</p>
+                            <p>Amount: <span class="transaction-amount">{{ transaction.transactionAmount }}</span></p>
+                            <p>Due: <span class="transaction-date">{{ transaction.transactionDate }}</span></p>
+                            <p>Frequency of Payment: <span class="transaction-date">{{ transaction.transactionFrequency }}</span></p>
+                            <p>Payment Method: <span class="transaction-date">{{ transaction.transactionPaymentMethod }}</span></p>
+                            <p>Vendor: <span class="transaction-date">{{ transaction.transactionVendor }}</span></p>
+                        </div>
+                    </div>
                 </div>
-                 <p><i class='bx bx-edit-alt' ></i>$150 (Due: 2024-03-15)</p>
-            </div>
-            <div class="payment-item">
-                <div class="payment-left">
-                    <i class='bx bx-shield-plus' ></i>
-                    <strong>Insurance</strong>
-                </div>
-                 <p><i class='bx bx-edit-alt' ></i>$200 (Due: 2024-03-20)</p>
-            </div>
-            <div class="payment-item">
-                <div class="payment-left">
-                    <i class='bx bx-car' ></i>
-                    <strong>Car Installment</strong>
-                </div>
-                 <p><i class='bx bx-edit-alt' ></i>$300 (Due: 2024-03-25)</p>
-            </div>
-            <div class="payment-item">
-                <div class="payment-left">
-                    <i class='bx bx-building-house' ></i>
-                    <strong>Property Mortgage</strong> 
-                </div>
-                 <p><i class='bx bx-edit-alt' ></i>$1000 (Due: 2024-03-30)</p>
-            </div>
-            <div class="payment-item">
-                <div class="payment-left">
-                    <i class='bx bxl-spotify' ></i>
-                    <strong>Music & Entertainment Subscription</strong>
-                </div>
-                 <p><i class='bx bx-edit-alt' ></i>$100 (Due: 2024-03-30)</p>
             </div>
         </div>
     </div>
 </template>
 <script>
 import {auth, db} from '@/assets/firebase.js';
-import {ref, push, onValue, remove, update} from 'firebase/database';
+import {ref, push, onValue} from 'firebase/database';
 export default{
     data(){
         return {
@@ -156,11 +150,54 @@ export default{
             transactionFrequency:'',
             transactionVendor:'',
             transactionPaymentMethod:'',
+            transactionData:[],
+            expandedCategory: null
         };
+    },
+    mounted(){
+        const currentUser = auth.currentUser;
+        const userTransactionsRef = ref(db, `plannedpayments/${currentUser.uid}`);
+        onValue(userTransactionsRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data){
+                this.transactionData = Object.values(data);
+            }
+        });
+    },
+    computed:{
+        groupedTransactions(){
+            const grouped = {};
+            this.transactionData.forEach(transaction => {
+                const category = transaction.transactionCategory;
+                if (!grouped[category]){
+                    grouped[category] = {
+                        transactions:[],
+                        totalAmount:0
+                    };
+                }
+                grouped[category].transactions.push(transaction);
+                grouped[category].totalAmount += parseFloat(transaction.transactionAmount)
+            });
+            console.log(grouped)
+            return grouped;
+        }
     },
     methods:{
         toggleForm(){
             this.showTransactionForm = !this.showTransactionForm;
+        },
+        getTotalAmount(frequency){
+             // Filter transactions based on frequency
+            const filteredTransactions = this.transactionData.filter(transaction => transaction.transactionFrequency === frequency);
+            // Calculate total amount for filtered transactions
+            const totalAmount = filteredTransactions.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
+            return totalAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+        },
+        getTotalScheduledPayment() {
+            // Calculate total amount for all scheduled payments
+            const totalAmount = this.transactionData.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
+            // Format total amount to display with currency symbol and comma separator
+            return totalAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
         },
         saveTransaction() {
             const currentUser = auth.currentUser;
@@ -189,6 +226,26 @@ export default{
             this.transactionVendor = '';
             this.transactionPaymentMethod = '';
             this.showTransactionForm = !this.showTransactionForm;
+        },
+        getIconClass(category){
+            const iconClasses = {
+                'Utilities':'bx bx-shower',
+                'Insurance': 'bx bxs-shield-plus',
+                'Loan Installments':'bx bxs-bank',
+                'Mortgage/Rent':'bx bx-home',
+                'Music and Entertainment Subscription':'bx bxl-spotify',
+                'Healthcare':'bx bx-plus-medical',
+                'Education':'bx bx-book',
+                'Investments':'bx bx-line-chart',
+                'Charitable Donations':'bx bx-donate-heart',
+                'Taxes':'bx bxs-landmark',
+                'Home Maintenance':'bx bx-wrench'
+            };
+            return iconClasses[category] || 'bx bx-question-circle';
+        },
+        toggleTransactionList(category){
+            this.expandedCategory = (this.expandedCategory === category) ? null : category;
+            console.log(this.expandedCategory)
         }
     }
 }
@@ -331,6 +388,9 @@ button{
     padding-left:5rem;
     padding-right:5rem;
 }
+.paymentAmount-container{
+    display:flex;
+}
 .totalPayment i{
     font-size:50px;
 }
@@ -345,6 +405,7 @@ button{
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* Box shadow */
     border-radius: 10px; /* Border radius for rounded corners */
     text-align: center;
+    margin-right:2rem;
 }
 .payment-item{
     display:flex;
@@ -371,5 +432,37 @@ button{
 }
 .payment-item i{
     margin-right:0.5rem;
+}
+.transaction-list {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom:0.5rem;
+}
+
+.transaction-item {
+    margin-bottom: 10px;
+    padding: 5px;
+    border-bottom: 1px solid #eee;
+}
+
+.transaction-item:last-child {
+    border-bottom: none;
+}
+
+.transaction-item p {
+    margin: 0;
+}
+
+.transaction-description {
+    font-weight: bold;
+}
+
+.transaction-amount {
+    color: #007bff; /* blue color for amount */
+}
+
+.transaction-date {
+    color: #999; /* gray color for date */
 }
 </style>
