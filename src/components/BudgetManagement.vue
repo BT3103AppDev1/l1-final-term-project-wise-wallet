@@ -77,8 +77,14 @@
     <div v-else class="payment-display">
       <div class="payment-left">
         <i class='bx bx-cart-add'></i> 
-        <strong>{{ item.name }}</strong>
+        <strong class="item-name">{{ item.name }}</strong>
+        <i class='bx bx-trash' @click="promptDelete(item.id)"></i> 
         </div>
+        <ConfirmationModal
+        :isVisible="showModalDelete"
+        message="Are you sure you want to delete this item?"
+        @confirm="confirmDelete"
+        @cancel="closeModal"/>
         <div class="payment-right">
         <i class='bx bx-edit-alt' @click="startEditing(item)"></i>
         <p>${{ item.amount }}</p>
@@ -96,7 +102,7 @@
                 </div>
             </div>
         </div>
-        <p class="customiseExpensesNote2">Remaining Budget After Fine Grained Planning: {{finalbudget }}</p>
+        <p class="customiseExpensesNote2">Remaining Budget After Fine Grained Planning: {{finalbudget}}</p>
 
     </div>
 </template>
@@ -106,9 +112,13 @@
 import { onAuthStateChanged } from "firebase/auth";
 import { get, ref as dbRef, set, push} from "firebase/database";
 import { auth, db } from '@/assets/firebase.js';
+import ConfirmationModal from './ConfirmationModal.vue';
 
 
 export default {
+    components: {
+    ConfirmationModal,
+  },
 
   data() {
     return {
@@ -138,7 +148,11 @@ export default {
     editingItem: null,
     editedName: '',
     editedAmount: 0,
+    itemIdToDelete: null,
+    showModalDelete: false,
+
     }
+
   },
   computed: {
     formattedSalary() {
@@ -435,7 +449,13 @@ export default {
       }
     });
   },
-  
+
+  calculateFinalBudget() {
+        const finalbudget = finalbudget()
+        console.log(finalbudget)
+        this.$emit('budget-status-updated', finalBudget < 0);
+    },
+
   startEditing(item) {
     this.editingItem = item.id;
     this.editedName = item.name;
@@ -474,10 +494,38 @@ export default {
     }
   });
 },
- 
+deleteItem(itemId) {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const uid = user.uid;
+        const itemRef = dbRef(db, `users/${uid}/budgetItems/${itemId}`);
 
-  
-}
+        set(itemRef, null) 
+          .then(() => {
+            console.log("Item deleted successfully.");
+            this.fetchBudgetItems();
+          })
+          .catch((error) => {
+            console.error("Failed to delete item:", error);
+          });
+      } else {
+        console.log("User not signed in. Cannot delete item.");
+      }
+    });
+  },
+  promptDelete(itemId) {
+      this.showModalDelete = true;
+      this.itemIdToDelete = itemId;
+    },
+    confirmDelete() {
+      this.deleteItem(this.itemIdToDelete);
+      this.closeModal();
+    },
+    closeModal() {
+      this.showModalDelete = false;
+      this.itemIdToDelete = null;
+    },
+  },
 }
 </script>
 
@@ -748,6 +796,10 @@ button:hover {
     display: flex;
     align-items: center; 
     
+}
+.item-name {
+    margin-left: 2px;
+    margin-right: 10px;
 }
 
 
