@@ -8,10 +8,12 @@ import resetPassword from '@/before-login/ForgetPassword.vue'
 
 import Dashboard from '@/after-login/Dashboard.vue'
 import profilePage from '@/after-login/ProfilePage.vue'
-import myBudget from '@/after-login/BudgetManagementPage.vue'
+import budgetManagement from '@/after-login/BudgetManagementPage.vue'
 import plannedPayments from '@/after-login/PlannedPayment.vue'
 import myExpenses from '@/after-login/MyExpensesPage.vue'
 import ForumPage from '@/after-login/ForumPage.vue'
+import MyBudgetPage from '@/after-login/MyBudgetPage.vue'
+
 const routes = [
 {
     path: '/',
@@ -45,8 +47,14 @@ const routes = [
 },
 {
     path:'/myBudget',
-    name:'my-budget',
-    component:myBudget
+    name:'myBudgetPage',
+    component:MyBudgetPage
+},
+{
+    path:'/budgetmanagement',
+    name:'budgetmanagement',
+    component:budgetManagement
+
 },
 {
     path: '/plannedpayments',

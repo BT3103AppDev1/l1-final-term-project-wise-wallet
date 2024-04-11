@@ -10,12 +10,14 @@
         <div class = "budgetNavContainer">
             <div class="budgetNav">
                 <i class='bx bx-cart-add' ></i>
-                <h3>Budget overview</h3>
+                <router-link to ='/myBudget' class="router-link" style="text-decoration: none; color:inherit">
+                    <h3>Budget overview</h3>
+                </router-link>
             </div>
             <div class="budgetNav">
                 <i class='bx bx-credit-card-alt' ></i>
                 <router-link to ='/plannedpayments' class="router-link" style="text-decoration: none; color:inherit">
-                    <h3>Planned Payment</h3>
+                    <h3>Planned payments</h3>
                 </router-link>
             </div>
             <div class="budgetNav">

@@ -6,12 +6,22 @@ export default{
     components:{
         NavBar,
         BudgetManagementPage
+    },
+    data() {
+        return {
+            isBudgetNegative: false
+        };
+    },
+    methods: {
+        updateBudgetStatus(status) {
+            this.isBudgetNegative = status;
+        }
     }
 }
 </script>
 <template>
     <main>
-        <NavBar/>
-        <BudgetManagementPage/>
+        <NavBar :isBudgetNegative="isBudgetNegative"/>
+        <BudgetManagementPage @budget-status-updated="updateBudgetStatus"/>
     </main>
 </template>

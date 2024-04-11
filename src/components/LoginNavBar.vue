@@ -49,7 +49,13 @@
         <label for = "checkProfile" class="icons">
             <i class='bx bx-user-circle'></i>
         </label>
-        <i class='bx bx-bell' ></i>
+        <div class="noti" @click="showAlert = !showAlert">
+        <i class='bx bx-bell' v-if="isBudgetNegative"></i>
+        <div v-if="showAlert" class="alertModal">
+            Your budget is negative! Re-manage your budget.
+            <button @click="showAlert = false">Close</button>
+        </div>
+        </div>        
         <nav class="navItems1">
             <div class="profileStuff">
                 <i class='bx bx-user-circle'></i>
@@ -96,6 +102,18 @@ export default {
         document.getElementById('displayName').innerText = currentUser.displayName;
         document.getElementById('userEmail').innerText = currentUser.email;
     },
+    props: {
+    isBudgetNegative: {
+        type: Boolean,
+        default: false
+    }
+    },
+    data() {
+    return {
+        showAlert: false
+    };
+    },
+
     methods:{
         logOut(){
             auth.signOut()
