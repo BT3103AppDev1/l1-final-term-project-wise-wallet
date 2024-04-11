@@ -55,9 +55,10 @@
                         <p><i class='bx bx-edit-alt' v-if="!editSpendings" @click="enableEditSpendings" ></i> Monthly Spendings</p>
                     </div>
                 </div>
-                <div>
+                <div class="chart-container">
+                  <Pie :data="chartData" :options="chartOptions" />  
                 </div>
-            </div>
+              </div>
         </div>
         <div class="monthlySpendingContainer">
             <h1>Remaining Monthly Budget Allocation: {{ formattedBudget }}</h1>
@@ -115,13 +116,15 @@ import { onAuthStateChanged } from "firebase/auth";
 import { get, ref as dbRef, set, push} from "firebase/database";
 import { auth, db } from '@/assets/firebase.js';
 import ConfirmationModal from './ConfirmationModal.vue';
-
+import { Pie } from 'vue-chartjs'
+import { Chart as ChartJS, Tooltip, Legend, ArcElement, Title } from 'chart.js';
 
 export default {
-    components: {
+  name: 'PieChart',
+  components: {
     ConfirmationModal,
+    Pie
   },
-
   data() {
     return {
       salary: 0, 
@@ -177,6 +180,49 @@ export default {
     },
     finalbudget() {
       return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(this.salary - this.investment - this.payment - this.savings - this.spendings - this.totalBudgetAmount);
+    },
+    chartData() {
+      return {
+        labels: ['Investment', 'Payment', 'Savings', 'Spendings'],
+        datasets: [{
+          data: [this.investment, this.payment, this.savings, this.spendings],
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.6)',
+            'rgba(54, 162, 235, 0.6)',
+            'rgba(255, 206, 86, 0.6)',
+            'rgba(75, 192, 192, 0.6)'
+          ],
+          borderColor: [
+            'rgba(255,99,132,1)',
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(75, 192, 192, 1)'
+          ],
+          borderWidth: 1,
+        }]
+      };
+    },
+    chartOptions() {
+      return {
+        responsive: true,
+        plugins: {
+          datalabels: {
+            color: '#fff',
+            anchor: 'end',
+            align: 'start',
+            font: {
+              weight: 'bold',
+              size: 16,
+            },
+          },
+          legend: {
+          },
+          title: {
+            display: true,
+            text: 'Monthly Budget Overview',
+          },
+        }
+      };
     }
   },
   created() {
@@ -245,7 +291,6 @@ export default {
                         this.investment = snapshot.val();
                     } else {
                         console.log("No monthly investment data available. Setting initial value to 0.");
-                        this.investment = 0;
                     }
                 }).catch((error) => {
                     console.error("Failed to fetch monthly investment:", error);
