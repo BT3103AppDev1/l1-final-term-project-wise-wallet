@@ -26,34 +26,46 @@
         </div>
     </div >
     <div class="chart-container">
+    <div class="pie-chart">
         <Pie :data="chartData" :options="chartOptions" />
     </div>
+    <div class="line-chart">
+        <Line :data="lineChartData" :options="lineChartOptions" />
+    </div>
+</div>
+
     </div>
 </template>
 
 <script>
 import { Chart, registerables } from 'chart.js';
+import 'chartjs-adapter-date-fns';
 Chart.register(...registerables);
-import { onMounted, ref } from 'vue';
+import { onMounted,ref } from 'vue';
 import { onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
-import { get, ref as dbRef} from "firebase/database";
+import {ref as dbRef, push, onValue, remove, update,get} from 'firebase/database';
 import { auth, db } from '@/assets/firebase.js';
-import { Pie } from 'vue-chartjs'
-import { Chart as ChartJS, Tooltip, Legend, ArcElement, Title } from 'chart.js';
+import { Pie,Line} from 'vue-chartjs';
+import { Chart as ChartJS, Tooltip, Legend, ArcElement, Title, LineElement } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
-ChartJS.register(Tooltip, Legend, ArcElement, Title, ChartDataLabels);
+
+ChartJS.register(Tooltip, Legend, ArcElement, Title, ChartDataLabels, LineElement);
 
 export default {
-    name: 'PieChart',
-    components: { Pie },
+    name: 'Charts',
+    components: { Pie, Line},
     data() {
         return {
             investment: 0,
             payment: 0,
             savings: 0,
             spendings: 0,
-
+            transactionData: [],  // Array to store fetched transactions
+            lineChartData: {
+            labels: [],
+            datasets: []},           
+            lineChartOptions: {}, // Options for the line chart
         };
     },
     computed: {
@@ -113,8 +125,79 @@ export default {
     
     mounted() {
         this.fetchBudgetAmounts();
+        this.fetchTransactions();
     },
     methods: {
+        fetchTransactions() {
+            const currentUser = auth.currentUser;
+
+            const userTransactionsRef = dbRef(db, `transactions/${currentUser.uid}`);
+            onValue(userTransactionsRef, (snapshot) => {
+            let transactionSumByDate = {};
+            snapshot.forEach((childSnapshot) => {
+                const transaction = childSnapshot.val();
+                const transactionDate = transaction.transactionDate;
+                let transactionAmount = parseFloat(transaction.transactionAmount);
+                if (transactionDate && !isNaN(transactionAmount)) {
+                if (transactionSumByDate[transactionDate]) {
+                    transactionSumByDate[transactionDate] += transactionAmount;
+                } else {
+                    transactionSumByDate[transactionDate] = transactionAmount;
+                }
+                }
+            });
+            // After processing the transactions, update the line chart data
+            this.transactionData = Object.keys(transactionSumByDate)
+                .map(date => ({
+                date: date,
+                totalAmount: transactionSumByDate[date]
+                }))
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
+            this.updateLineChartData();
+            }, {
+            onlyOnce: true // Add this option if you only want to fetch the data once
+            });
+        },
+
+    updateLineChartData() {
+            this.lineChartData = {
+                labels: this.transactionData.map(t => t.date),
+                datasets: [
+                    {
+                        label: 'Daily Transactions',
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 0.8)',
+                        data: this.transactionData.map(t => t.totalAmount),
+                        fill: false,
+                    }
+                ]
+            };
+            this.lineChartOptions = {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            };
+        },
+        
         fetchBudgetAmounts() {
             onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -126,7 +209,6 @@ export default {
                 get(investmentRef).then((snapshot) => {
                     if (snapshot.exists()) {
                         this.investment = snapshot.val();
-                        console.log(this.investment)
                     } 
                 })
                 get(paymentRef).then((snapshot) => {
@@ -226,8 +308,13 @@ export default {
     border-radius:20px;
 }
 .chart-container {
-  height: 400px;
-
+    display: flex;
+    height: 400px; /* Adjust the height as needed */
+}
+.pie-chart,
+.line-chart {
+    flex: 1; /* Each chart container will take up equal space */
+    padding: 1rem; /* This adds some space around the charts */
 }
 
 

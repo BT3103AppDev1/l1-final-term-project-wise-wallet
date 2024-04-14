@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "chart.js": "^4.4.2",
+    "chartjs-adapter-date-fns": "^3.0.0",
     "chartjs-plugin-datalabels": "^2.2.0",
     "firebase": "^10.9.0",
     "vue": "^3.4.15",
