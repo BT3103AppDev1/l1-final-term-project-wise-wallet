@@ -9,6 +9,14 @@
             <button id="add-new-button" class="add-button" @click="toggleTransactionForm">
               {{ showTransactionForm ? '-' : '+' }} {{ showTransactionForm ? 'Hide' : 'Add' }}
             </button>
+            <div class = 'showAmount'>
+              <div class = 'showExpenses'>
+                <h1>Total Expenses for the Month: ${{ totalExpensesForMonth }}</h1>
+              </div>
+              <div class = 'showIncome'>
+                <h1>Total Income for the Month: ${{ totalIncomeForMonth }}</h1>
+              </div>
+            </div>
             <!-- Transaction entry form (initially hidden) v-if="showTransactionForm" -->
             <form @submit.prevent="saveTransaction" v-if="showTransactionForm">
               <div class="user-details">
@@ -22,6 +30,7 @@
                   <label class="details">Category:</label>
                   <select v-model="transactionCategory" required>
                     <option value="Salary">Salary</option>
+                    <option value="Income">Other Income</option>
                     <option value="Food">Food</option>
                     <option value="Transportation">Transportation</option>
                     <option value="Utilities">Utilities</option>
@@ -78,8 +87,7 @@
           <div class ='day-section'>
             <h2>Today</h2>
             <div class="transaction-item" v-for="transaction in filteredTodayTransactions" :key="transaction.id">
-              
-              <div class="transaction-icon shopping-icon"></div>
+              <div :class="['transaction-icon', categoryIconMap[transaction.transactionCategory]]"></div>
               
               <div class="transaction-description">
                 <span class="transaction-title">{{ transaction.transactionCategory }}</span>
@@ -135,6 +143,7 @@
           <select class="category-select" v-model="filterCategory">
             <option value="">Choose Category</option>
                     <option value="Salary">Salary</option>
+                    <option value="Income">Other Income</option>
                     <option value="Food">Food</option>
                     <option value="Transportation">Transportation</option>
                     <option value="Utilities">Utilities</option>
@@ -181,13 +190,98 @@ data() {
       filterPaymentMethod: '',
       filterCategory: '',
       filterSortBy: '',
+      totalExpensesForMonth: 0,
+      totalIncomeForMonth: 0,
+      categoryIconMap: {
+        'Salary':'bx bxs-bank',
+        'Income':'bx bx-wallet',
+        'Food': 'bx bx-bowl-rice',
+        'Transportation': 'bx bx-car',
+        'Utilities': 'bx bx-shower',
+        'Housing':'bx bx-building-house',
+        'Entertainment':'bx bx-music',
+        'Clothing':'bx bxs-t-shirt',
+        'Healthcare': 'bx bx-heart',
+        'Education':'bx bx-book',
+        'Travel':'bx bxs-plane-take-off',
+        'Gifts':'bx bx-gift',
+        'Insurance':'bx bx-shield-plus',
+        'Investments':'bx bx-money-withdraw',
+        'Charity':'bx bx-donate-heart',
+        'Other':'bx bx-square-rounded'
+            // Add more mappings for other transaction categories as needed
+        }
   };
 },
 mounted(){
   this.transactionDate = this.getCurrentDate();
   this.fetchTransactions();
+  this.fetchTransactionData();
 },
 methods:{
+  fetchTransactionData() {
+        const currentUser = auth.currentUser;
+        const userTransactionsRef = ref(db, `transactions/${currentUser.uid}`);
+
+        onValue(userTransactionsRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                this.transactionData = Object.values(data); // Assign transaction data to the component's property
+                this.calculateTotalExpensesForMonth(); // Calculate total expenses for the month after fetching transaction data
+                this.calculateTotalIncomeForMonth();
+            }
+        });
+    },
+    calculateTotalExpensesForMonth() {
+    // Check if transactionData is available
+    if (this.transactionData) {
+        // Calculate total expenses for the month using this.transactionData
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth() + 1;
+
+        // Filter transactions for the current month and exclude transactions categorized as 'Salary' and 'Income'
+        const currentMonthExpenses = this.transactionData.filter(transaction => {
+            const transactionDate = new Date(transaction.transactionDate);
+            return (
+                transactionDate.getMonth() + 1 === currentMonth &&
+                transaction.transactionCategory !== 'Salary' &&
+                transaction.transactionCategory !== 'Income'
+            );
+        });
+
+        // Calculate total expenses for the current month
+        this.totalExpensesForMonth = currentMonthExpenses.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
+        // Ensure totalExpenses is positive
+        this.totalExpensesForMonth = Math.abs(this.totalExpensesForMonth).toFixed(2);
+    } else {
+        console.error("Transaction data is not available.");
+    }
+  },
+  calculateTotalIncomeForMonth() {
+        // Check if transactionData is available
+        if (this.transactionData) {
+            // Calculate total income for the month using this.transactionData
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth() + 1;
+
+            // Filter transactions for the current month and include only transactions categorized as 'Income'
+            const currentMonthIncome = this.transactionData.filter(transaction => {
+                const transactionDate = new Date(transaction.transactionDate);
+                return (
+                    transactionDate.getMonth() + 1 === currentMonth &&
+                    (transaction.transactionCategory === 'Income' || transaction.transactionCategory === 'Salary')
+                );
+            });
+
+            // Calculate total income for the current month
+            const totalIncome = currentMonthIncome.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
+
+            // Ensure totalIncome is positive and formatted to two decimal places
+            this.totalIncomeForMonth = Math.abs(totalIncome).toFixed(2);
+        } else {
+            console.error("Transaction data is not available.");
+        }
+    },
   toggleTransactionForm(){
     this.showTransactionForm = !this.showTransactionForm;
   },
@@ -538,15 +632,8 @@ margin-bottom: 0.5rem; /* Add some margin to the bottom of each item */
 }
 
 .transaction-icon {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-right: 10px;
-}
-
-.shopping-icon {
-  background-color: #FDDFDF; /* Example color for shopping icon */
+font-size: 50px;
+margin:2rem
 }
 
 .salary-icon {
@@ -636,5 +723,17 @@ margin-bottom: 0.5rem; /* Add some margin to the bottom of each item */
   background-color: white;
   border-radius: 50%;
   margin-right: 10px;
+}
+.showAmount {
+    background-color: #f0f0f0; /* Set background color to a light grey */
+    padding: 20px; /* Add padding */
+    border-radius: 8px; /* Add border radius for rounded corners */
+}
+.showIncome h1,
+.showExpenses h1 {
+    font-size: 24px; /* Decrease font size for better readability */
+    font-weight: bold; /* Make the text bold */
+    color: #333; /* Set text color to a dark shade */
+    margin-bottom: 10px; /* Add space between the heading and other content */
 }
 </style>

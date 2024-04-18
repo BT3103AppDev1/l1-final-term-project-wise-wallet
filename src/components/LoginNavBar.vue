@@ -49,13 +49,10 @@
         <label for = "checkProfile" class="icons">
             <i class='bx bx-user-circle'></i>
         </label>
-        <div class="noti" @click="showAlert = !showAlert">
-        <i class='bx bx-bell' v-if="isBudgetNegative"></i>
-        <div v-if="showAlert" class="alertModal">
-            Your budget is negative! Re-manage your budget.
-            <button @click="showAlert = false">Close</button>
+        <div class="notification" v-if="showNotification">
+             <i class="bx bx-bell"></i>
+             <span class="alert-message">Expenses exceeded income!</span>
         </div>
-        </div>        
         <nav class="navItems1">
             <div class="profileStuff">
                 <i class='bx bx-user-circle'></i>
@@ -94,7 +91,8 @@
     </div>
 </template>
 <script>
-import {auth} from '@/assets/firebase.js';
+import {auth, db} from '@/assets/firebase.js';
+import {ref,onValue} from 'firebase/database';
 export default {
     mounted() {
         const currentUser = auth.currentUser;
@@ -109,12 +107,92 @@ export default {
     }
     },
     data() {
-    return {
-        showAlert: false
+        return {
+        showNotification: false,
+        totalExpensesForMonth: 0,
+        totalIncomeForMonth: 0,
+        transactionData: [] // Initialize transactionData array
     };
     },
-
+    mounted() {
+    // Fetch and calculate total expenses and total income when the component is mounted
+    this.fetchTransactionData();
+    },
     methods:{
+        fetchTransactionData() {
+        const currentUser = auth.currentUser;
+        const userTransactionsRef = ref(db, `transactions/${currentUser.uid}`);
+
+        onValue(userTransactionsRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                this.transactionData = Object.values(data); // Assign transaction data to the component's property
+                this.calculateTotalExpensesForMonth(); // Calculate total expenses for the month after fetching transaction data
+                this.calculateTotalIncomeForMonth();
+                this.checkNotification(); // Check notification after both expenses and income are calculated
+            }
+        });
+    },
+    calculateTotalExpensesForMonth() {
+        // Check if transactionData is available
+        if (this.transactionData.length > 0) {
+            // Calculate total expenses for the month using this.transactionData
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth() + 1;
+
+            // Filter transactions for the current month and exclude transactions categorized as 'Salary' and 'Income'
+            const currentMonthExpenses = this.transactionData.filter(transaction => {
+                const transactionDate = new Date(transaction.transactionDate);
+                return (
+                    transactionDate.getMonth() + 1 === currentMonth &&
+                    transaction.transactionCategory !== 'Salary' &&
+                    transaction.transactionCategory !== 'Income'
+                );
+            });
+
+            // Calculate total expenses for the current month
+            this.totalExpensesForMonth = currentMonthExpenses.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
+            // Ensure totalExpenses is positive
+            this.totalExpensesForMonth = Math.abs(this.totalExpensesForMonth).toFixed(2);
+        } else {
+            console.error("Transaction data is not available.");
+        }
+    },
+    calculateTotalIncomeForMonth() {
+        // Check if transactionData is available
+        if (this.transactionData.length > 0) {
+            // Calculate total income for the month using this.transactionData
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth() + 1;
+
+            // Filter transactions for the current month and include only transactions categorized as 'Income'
+            const currentMonthIncome = this.transactionData.filter(transaction => {
+                const transactionDate = new Date(transaction.transactionDate);
+                return (
+                    transactionDate.getMonth() + 1 === currentMonth &&
+                    (transaction.transactionCategory === 'Income' || transaction.transactionCategory === 'Salary')
+                );
+            });
+
+            // Calculate total income for the current month
+            const totalIncome = currentMonthIncome.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
+
+            // Ensure totalIncome is positive and formatted to two decimal places
+            this.totalIncomeForMonth = Math.abs(totalIncome).toFixed(2);
+        } else {
+            console.error("Transaction data is not available.");
+        }
+    },
+    checkNotification() {
+      // Check if total expenses exceed total income
+      if (parseFloat(this.totalExpensesForMonth) > parseFloat(this.totalIncomeForMonth)) {
+        // Show notification if expenses exceed income
+        this.showNotification = true;
+      } else {
+        // Hide notification if expenses are within or below income
+        this.showNotification = false;
+      }
+    },
         logOut(){
             auth.signOut()
             .then(() => {
@@ -279,5 +357,35 @@ export default {
 .profileInfo p {
     margin: 0; /* Remove default margins */
     font-size: 30px;
+}
+.notification {
+  display: flex;
+  align-items: center;
+  background-color: #f44336; /* Red color for danger/alert */
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  animation: fadeInUp 0.5s ease; /* Example animation */
+  margin-left:2rem;
+}
+
+.notification .bx {
+  margin-right: 5px;
+}
+
+.alert-message {
+  font-weight: bold;
+}
+
+/* Example fade-in animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

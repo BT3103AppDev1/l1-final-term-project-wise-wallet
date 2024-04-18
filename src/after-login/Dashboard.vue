@@ -1,5 +1,5 @@
 <script>
-import Dashboard from '@/components/ProfilePage.vue'
+import Dashboard from '@/components/MyBudgetPage.vue'
 import NavBar from '@/components/LoginNavBar.vue'
 export default{
     name:'dashboard',
