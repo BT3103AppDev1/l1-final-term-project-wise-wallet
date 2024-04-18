@@ -35,7 +35,7 @@
     </div>
 </template>
 <script>
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, setPersistence, signInWithEmailAndPassword, browserSessionPersistence } from'firebase/auth';
 import {auth} from '@/assets/firebase.js';
 export default {
   data() {

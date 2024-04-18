@@ -93,6 +93,7 @@
 <script>
 import {auth, db} from '@/assets/firebase.js';
 import {ref,onValue} from 'firebase/database';
+import { getAuth, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
 export default {
     mounted() {
         const currentUser = auth.currentUser;
@@ -111,7 +112,8 @@ export default {
         showNotification: false,
         totalExpensesForMonth: 0,
         totalIncomeForMonth: 0,
-        transactionData: [] // Initialize transactionData array
+        transactionData: [], // Initialize transactionData array
+        currentUser: null
     };
     },
     mounted() {
@@ -296,7 +298,6 @@ export default {
 }
 .bx-bell{
     color:white;
-    margin-left: 1.5rem;
     font-size: 2.8rem;
 }
 .loginNavBar .navItems1{
@@ -365,8 +366,8 @@ export default {
   color: white;
   padding: 10px;
   border-radius: 5px;
-  animation: fadeInUp 0.5s ease; /* Example animation */
-  margin-left:2rem;
+  animation: fadeInUp 1s ease; /* Example animation */
+  margin-left:2rem; margin-right:2rem;
 }
 
 .notification .bx {
