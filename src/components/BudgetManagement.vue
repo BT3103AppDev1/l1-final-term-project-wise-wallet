@@ -26,7 +26,11 @@
             </div>
         </div>
         <div class="budgetBreakdownContainer">
+          
             <div class="totalPayment">
+              <div class="chart-container">
+                  <Pie :data="chartData" :options="chartOptions" />  
+                </div>
                 <div class="salaryShow">
                 <h1 v-if="!editSalary">{{ formattedSalary }}</h1>
                 <input v-else v-model="editValue" type="text" @blur="finishEdit" @keyup.enter="finishEdit">
@@ -53,9 +57,6 @@
                         <h1>{{ formattedSpendings }}</h1>
                         <p> Remaining Monthly Budget</p>
                     </div>
-                </div>
-                <div class="chart-container">
-                  <Pie :data="chartData" :options="chartOptions" />  
                 </div>
                 <div class = 'historical_compare'>
                   <canvas id="barChart"></canvas>
@@ -190,7 +191,7 @@ export default {
       return {
         labels: ['Investment', 'Payment', 'Savings', 'Remaining Budget'],
         datasets: [{
-          data: [this.investment, this.payment, this.savings, this.spendings],
+          data: [this.investment, this.payment, this.savings, this.salary - this.investment - this.payment - this.savings],
           backgroundColor: [
             'rgba(255, 99, 132, 0.6)',
             'rgba(54, 162, 235, 0.6)',
@@ -951,13 +952,14 @@ button:hover {
     margin-right: 10px;
 }
 .chart-container{
-  margin:2rem;
+  margin:1rem;
 }
 .historical_compare{
   position: relative;
   width: 40%;
   height: 400px; /* Adjust height as needed */
   margin-top: 20px;
+  margin:1rem;
 }
 
 </style>

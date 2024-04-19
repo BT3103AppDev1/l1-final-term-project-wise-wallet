@@ -30,8 +30,11 @@
         <Pie :data="chartData" :options="chartOptions" />
     </div>
     <div class="line-chart">
-        <Line :data="lineChartData" :options="lineChartOptions" />
-    </div>
+    <Line :data="lineChartData" :options="lineChartOptions" />
+    <button @click="setViewMode('daily')">Show Daily Transactions</button>
+    <button @click="setViewMode('monthly')">Show Monthly Transactions</button>
+    <button @click="setViewMode('yearly')">Show Yearly Transactions</button>
+</div>
 </div>
 
     </div>
@@ -60,12 +63,13 @@ export default {
             investment: 0,
             payment: 0,
             savings: 0,
-            spendings: 0,
+            salary: 0,
             transactionData: [],  // Array to store fetched transactions
             lineChartData: {
             labels: [],
             datasets: []},           
             lineChartOptions: {}, // Options for the line chart
+            viewMode: 'daily'
         };
     },
     computed: {
@@ -73,7 +77,7 @@ export default {
       return {
         labels: ['Investment', 'Payment', 'Savings', 'Remaining Budget'],
         datasets: [{
-          data: [this.investment, this.payment, this.savings, this.spendings],
+          data: [this.investment, this.payment, this.savings, this.salary - this.investment - this.payment - this.savings],
           backgroundColor: [
             'rgba(255, 99, 132, 0.6)',
             'rgba(54, 162, 235, 0.6)',
@@ -128,76 +132,59 @@ export default {
         this.fetchTransactions();
     },
     methods: {
-        fetchTransactions() {
-            const currentUser = auth.currentUser;
 
-            const userTransactionsRef = dbRef(db, `transactions/${currentUser.uid}`);
-            onValue(userTransactionsRef, (snapshot) => {
-            let transactionSumByDate = {};
-            snapshot.forEach((childSnapshot) => {
-                const transaction = childSnapshot.val();
-                const transactionDate = transaction.transactionDate;
-                let transactionAmount = parseFloat(transaction.transactionAmount);
-                if (transactionDate && !isNaN(transactionAmount)) {
-                if (transactionSumByDate[transactionDate]) {
-                    transactionSumByDate[transactionDate] += transactionAmount;
-                } else {
-                    transactionSumByDate[transactionDate] = transactionAmount;
+        toggleViewMode() {
+            this.viewMode = this.viewMode === 'daily' ? 'monthly' : 'daily';
+            this.fetchTransactions();  // Refetch with the new mode
+        },
+        setViewMode(mode) {
+        this.viewMode = mode;
+        this.fetchTransactions();
+    },
+        
+        fetchTransactions() {
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+        const userTransactionsRef = dbRef(db, `transactions/${currentUser.uid}`);
+        onValue(userTransactionsRef, snapshot => {
+            let transactionSum = {};
+            snapshot.forEach(childSnapshot => {
+                const { transactionDate, transactionAmount } = childSnapshot.val();
+                const date = new Date(transactionDate);
+                let key;
+                switch (this.viewMode) {
+                    case 'yearly':
+                        key = `${date.getFullYear()}`; // Year key as "YYYY"
+                        break;
+                    case 'monthly':
+                        key = `${date.getFullYear()}-${date.getMonth() + 1}`; // Month key as "YYYY-M"
+                        break;
+                    case 'daily':
+                        key = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`; // Day key as "YYYY-M-D"
+                        break;
                 }
-                }
+                transactionSum[key] = (transactionSum[key] || 0) + parseFloat(transactionAmount);
             });
-            // After processing the transactions, update the line chart data
-            this.transactionData = Object.keys(transactionSumByDate)
-                .map(date => ({
-                date: date,
-                totalAmount: transactionSumByDate[date]
-                }))
+            this.transactionData = Object.entries(transactionSum).map(([date, totalAmount]) => ({ date, totalAmount }))
                 .sort((a, b) => new Date(a.date) - new Date(b.date));
             this.updateLineChartData();
-            }, {
-            onlyOnce: true // Add this option if you only want to fetch the data once
-            });
-        },
+        }, { onlyOnce: true });
+    }
+},
 
-    updateLineChartData() {
+
+        updateLineChartData() {
             this.lineChartData = {
                 labels: this.transactionData.map(t => t.date),
-                datasets: [
-                    {
-                        label: 'Daily Transactions',
-                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                        borderColor: 'rgba(54, 162, 235, 0.8)',
-                        data: this.transactionData.map(t => t.totalAmount),
-                        fill: false,
-                    }
-                ]
-            };
-            this.lineChartOptions = {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                },
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'day'
-                        }
-                    },
-                    y: {
-                        beginAtZero: true
-                    }
-                }
+                datasets: [{
+                    label: `${this.viewMode.charAt(0).toUpperCase() + this.viewMode.slice(1)} Transactions`,
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 0.8)',
+                    data: this.transactionData.map(t => t.totalAmount),
+                    fill: false,
+                }]
             };
         },
-        
         fetchBudgetAmounts() {
             onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -206,6 +193,12 @@ export default {
                 const paymentRef = dbRef(db, `/monthlyPayment/${uid}`);
                 const savingsRef = dbRef(db, `/monthlySavings/${uid}`);
                 const spendingsRef = dbRef(db, `/monthlySpendings/${uid}`);
+                const incomeRef = dbRef(db, `monthlyIncome/${uid}`);
+                get(incomeRef).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        this.salary = snapshot.val();
+                    }
+                }) 
                 get(investmentRef).then((snapshot) => {
                     if (snapshot.exists()) {
                         this.investment = snapshot.val();
@@ -317,5 +310,26 @@ export default {
     padding: 1rem; /* This adds some space around the charts */
 }
 
+.line-chart button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 12px;
+    color: white;
+    background-color: #4158D0;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.line-chart button:hover {
+    background-color: #293B8F;
+    transform: scale(1.05);
+}
+
+.line-chart button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(65, 88, 208, 0.5);
+}
 
 </style>
