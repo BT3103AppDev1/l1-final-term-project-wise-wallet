@@ -182,7 +182,7 @@ export default {
     },
     chartData() {
       return {
-        labels: ['Investment', 'Payment', 'Savings', 'Spendings'],
+        labels: ['Investment', 'Payment', 'Savings', 'Remaining Budget'],
         datasets: [{
           data: [this.investment, this.payment, this.savings, this.spendings],
           backgroundColor: [

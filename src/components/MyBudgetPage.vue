@@ -71,7 +71,7 @@ export default {
     computed: {
     chartData() {
       return {
-        labels: ['Investment', 'Payment', 'Savings', 'Spendings'],
+        labels: ['Investment', 'Payment', 'Savings', 'Remaining Budget'],
         datasets: [{
           data: [this.investment, this.payment, this.savings, this.spendings],
           backgroundColor: [
@@ -202,10 +202,10 @@ export default {
             onAuthStateChanged(auth, (user) => {
             if (user) {
                 const uid = user.uid;
-                const investmentRef = dbRef(db, 'users/' + uid + '/monthlyInvestment');
-                const paymentRef = dbRef(db, 'users/' + uid + '/monthlyPayment');
-                const savingsRef = dbRef(db, 'users/' + uid + '/monthlySavings');
-                const spendingsRef = dbRef(db, 'users/' + uid + '/monthlySpendings');
+                const investmentRef = dbRef(db, `/monthlyInvestment/${uid}`);
+                const paymentRef = dbRef(db, `/monthlyPayment/${uid}`);
+                const savingsRef = dbRef(db, `/monthlySavings/${uid}`);
+                const spendingsRef = dbRef(db, `/monthlySpendings/${uid}`);
                 get(investmentRef).then((snapshot) => {
                     if (snapshot.exists()) {
                         this.investment = snapshot.val();
