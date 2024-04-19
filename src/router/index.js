@@ -13,6 +13,7 @@ import plannedPayments from '@/after-login/PlannedPayment.vue'
 import myExpenses from '@/after-login/MyExpensesPage.vue'
 import ForumPage from '@/after-login/ForumPage.vue'
 import MyBudgetPage from '@/after-login/MyBudgetPage.vue'
+import CreatePostPage from '@/after-login/CreatePostPage.vue'
 
 const routes = [
 {
@@ -75,6 +76,11 @@ const routes = [
     path: '/forum',
     name: 'forum-page',
     component: ForumPage
+},
+{
+    path: '/create-post',
+    name: 'create-post',
+    component: CreatePostPage
 }
 ]
 const router = createRouter({
