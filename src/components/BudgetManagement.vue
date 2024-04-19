@@ -50,9 +50,8 @@
                         <p><i class='bx bx-edit-alt' v-if="!editSavings" @click="enableEditSavings" ></i> Monthly Savings</p>
                     </div>
                     <div class="paymentLabel">
-                        <h1 v-if="!editSpendings">{{ formattedSpendings }}</h1>
-                    <input v-else v-model="editSpendingsValue" type="text" @blur="finishEditSpendings" @keyup.enter="finishEditSpendings">
-                        <p><i class='bx bx-edit-alt' v-if="!editSpendings" @click="enableEditSpendings" ></i> Monthly Spendings</p>
+                        <h1>{{ formattedSpendings }}</h1>
+                        <p> Remaining Monthly Budget</p>
                     </div>
                 </div>
                 <div class="chart-container">
@@ -173,13 +172,13 @@ export default {
       return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(this.savings);
     },
     formattedSpendings() {
-      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(this.spendings);
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(this.salary - this.investment - this.payment - this.savings);
     },
     formattedBudget() {
-      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(this.salary - this.investment - this.payment - this.savings - this.spendings);
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(this.salary - this.investment - this.payment - this.savings);
     },
     finalbudget() {
-      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(this.salary - this.investment - this.payment - this.savings - this.spendings - this.totalBudgetAmount);
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(this.salary - this.investment - this.payment - this.savings - this.totalBudgetAmount);
     },
     chartData() {
       return {
@@ -235,7 +234,7 @@ export default {
     onAuthStateChanged(auth, (user) => {
       if (user) {
         const uid = user.uid;
-        const budgetItemsRef = dbRef(db, `users/${uid}/budgetItems`);
+        const budgetItemsRef = dbRef(db, `budgetItems/${uid}`);
         get(budgetItemsRef).then((snapshot) => {
         if (snapshot.exists()) {
           const itemsObj = snapshot.val();
@@ -272,7 +271,7 @@ export default {
             if (user) {
                 const uid = user.uid;
                 // Fetching Monthly Income
-                const incomeRef = dbRef(db, 'users/' + uid + '/monthlyIncome');
+                const incomeRef = dbRef(db, `monthlyIncome/${uid}`);
                 get(incomeRef).then((snapshot) => {
                     if (snapshot.exists()) {
                         this.salary = snapshot.val();
@@ -285,7 +284,7 @@ export default {
                 });
 
                 // Fetching Monthly Investment
-                const investmentRef = dbRef(db, 'users/' + uid + '/monthlyInvestment');
+                const investmentRef = dbRef(db, `monthlyInvestment/${uid}`);
                 get(investmentRef).then((snapshot) => {
                     if (snapshot.exists()) {
                         this.investment = snapshot.val();
@@ -295,7 +294,7 @@ export default {
                 }).catch((error) => {
                     console.error("Failed to fetch monthly investment:", error);
                 });
-                const paymentRef = dbRef(db, 'users/' + uid + '/monthlyPayment');
+                const paymentRef = dbRef(db, `monthlyPayment/${uid}`);
                 get(paymentRef).then((snapshot) => {
                     if (snapshot.exists()) {
                         this.payment = snapshot.val();
@@ -306,7 +305,7 @@ export default {
                 }).catch((error) => {
                     console.error("Failed to fetch monthly payment:", error);
                 });
-                const savingsRef = dbRef(db, 'users/' + uid + '/monthlySavings');
+                const savingsRef = dbRef(db, `monthlySavings/${uid}`);
                 get(savingsRef).then((snapshot) => {
                     if (snapshot.exists()) {
                         this.savings = snapshot.val();
@@ -317,7 +316,7 @@ export default {
                 }).catch((error) => {
                     console.error("Failed to fetch monthly savings:", error);
                 });
-                const spendingsRef = dbRef(db, 'users/' + uid + '/monthlySpendings');
+                const spendingsRef = dbRef(db, `monthlySpendings/${uid}`);
                 get(spendingsRef).then((snapshot) => {
                     if (snapshot.exists()) {
                         this.spendings = snapshot.val();
@@ -349,7 +348,7 @@ export default {
       onAuthStateChanged(auth, (user) => {
         if (user) {
           const uid = user.uid;
-          const incomeRef = dbRef(db, 'users/' + uid + '/monthlyIncome');
+          const incomeRef = dbRef(db, `monthlyIncome/${uid}`);
           set(incomeRef, income).then(() => {
             console.log("Monthly income updated successfully.");
           }).catch((error) => {
@@ -375,7 +374,7 @@ export default {
       onAuthStateChanged(auth, (user) => {
         if (user) {
           const uid = user.uid;
-          const investmentRef = dbRef(db, 'users/' + uid + '/monthlyInvestment');
+          const investmentRef = dbRef(db, `monthlyInvestment/${uid}`);
           set(investmentRef, investment).then(() => {
             console.log("Monthly investment updated successfully.");
           }).catch((error) => {
@@ -402,7 +401,7 @@ export default {
       onAuthStateChanged(auth, (user) => {
         if (user) {
           const uid = user.uid;
-          const paymentRef = dbRef(db, 'users/' + uid + '/monthlyPayment');
+          const paymentRef = dbRef(db, `monthlyPayment/${uid}`);
           set(paymentRef, payment).then(() => {
             console.log("Monthly payment updated successfully.");
           }).catch((error) => {
@@ -429,7 +428,7 @@ export default {
       onAuthStateChanged(auth, (user) => {
         if (user) {
           const uid = user.uid;
-          const savingsRef = dbRef(db, 'users/' + uid + '/monthlySavings');
+          const savingsRef = dbRef(db, `monthlySavings/${uid}`);
           set(savingsRef, savings).then(() => {
             console.log("Monthly savings updated successfully.");
           }).catch((error) => {
@@ -462,7 +461,7 @@ export default {
       onAuthStateChanged(auth, (user) => {
         if (user) {
           const uid = user.uid;
-          const spendingsRef = dbRef(db, 'users/' + uid + '/monthlySpendings');
+          const spendingsRef = dbRef(db, `monthlySpendings/${uid}`);
           set(spendingsRef, spendings).then(() => {
             console.log("Monthly spendings updated successfully.");
           }).catch((error) => {
@@ -481,7 +480,7 @@ export default {
         };
 
         // Create a new reference for a budget item with a unique key
-        const newItemRef = push(dbRef(db, `users/${uid}/budgetItems`));
+        const newItemRef = push(dbRef(db, `budgetItems/${uid}`));
         set(newItemRef, newItem).then(() => {
           console.log("New budget item added successfully.");
           this.fetchBudgetItems(); 
@@ -524,7 +523,7 @@ export default {
       };
 
       // Update the reference for the existing budget item
-      const itemRef = dbRef(db, `users/${uid}/budgetItems/${this.editingItem}`);
+      const itemRef = dbRef(db, `/budgetItems/${uid}/${this.editingItem}`);
       set(itemRef, updatedItem).then(() => {
         console.log("Budget item updated successfully.");
         this.fetchBudgetItems(); // Refresh the list of budget items
@@ -545,7 +544,7 @@ deleteItem(itemId) {
     onAuthStateChanged(auth, (user) => {
       if (user) {
         const uid = user.uid;
-        const itemRef = dbRef(db, `users/${uid}/budgetItems/${itemId}`);
+        const itemRef = dbRef(db, `/budgetItems/${uid}/${itemId}`);
 
         set(itemRef, null) 
           .then(() => {
