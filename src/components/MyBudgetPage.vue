@@ -27,13 +27,19 @@
     </div >
     <div class="chart-container">
     <div class="pie-chart">
+        <button @click="exportPieChart('csv')">Export CSV</button>
+        <button @click="exportPieChart('pdf')">Export PDF</button>
         <Pie :data="chartData" :options="chartOptions" />
+
     </div>
     <div class="line-chart">
+    <button @click="exportLineChart('csv')">Export CSV</button>
+    <button @click="exportLineChart('pdf')">Export PDF</button>
     <Line :data="lineChartData" :options="lineChartOptions" />
     <button @click="setViewMode('daily')">Show Daily Transactions</button>
     <button @click="setViewMode('monthly')">Show Monthly Transactions</button>
     <button @click="setViewMode('yearly')">Show Yearly Transactions</button>
+
 </div>
 </div>
 
@@ -51,6 +57,9 @@ import { auth, db } from '@/assets/firebase.js';
 import { Pie,Line} from 'vue-chartjs';
 import { Chart as ChartJS, Tooltip, Legend, ArcElement, Title, LineElement } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { saveAs } from 'file-saver';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 
 ChartJS.register(Tooltip, Legend, ArcElement, Title, ChartDataLabels, LineElement);
@@ -143,10 +152,10 @@ export default {
     },
         
         fetchTransactions() {
-    const currentUser = auth.currentUser;
-    if (currentUser) {
-        const userTransactionsRef = dbRef(db, `transactions/${currentUser.uid}`);
-        onValue(userTransactionsRef, snapshot => {
+            const currentUser = auth.currentUser;
+            if (currentUser) {
+                const userTransactionsRef = dbRef(db, `transactions/${currentUser.uid}`);
+                onValue(userTransactionsRef, snapshot => {
             let transactionSum = {};
             snapshot.forEach(childSnapshot => {
                 const { transactionDate, transactionAmount } = childSnapshot.val();
@@ -171,7 +180,6 @@ export default {
         }, { onlyOnce: true });
     }
 },
-
 
         updateLineChartData() {
             this.lineChartData = {
@@ -221,8 +229,54 @@ export default {
                 })
             }
         });
+    },
+
+    exportPieChart(format) {
+    if (format === 'csv') {
+        // Assume this.chartData.labels are the row headings and this.chartData.datasets[0].data are the corresponding values
+        let rows = this.chartData.labels.map((label, index) => [label, this.chartData.datasets[0].data[index]]);
+        this.exportCSV(rows, ['Category', 'Amount'], 'pie-chart-data.csv');
+    } else if (format === 'pdf') {
+        this.exportPDF(this.chartData, 'Pie Chart', 'pie-chart-data.pdf');
+    }},
+
+    exportLineChart(format) {
+        if (format === 'csv') {
+            this.exportCSV(this.lineChartData.datasets[0].data.map((amount, index) => [this.lineChartData.labels[index], amount]), ['Date', 'Amount'], 'line-chart-data.csv');
+        } else if (format === 'pdf') {
+            this.exportPDF(this.lineChartData, 'Line Chart', 'line-chart-data.pdf');
+        }
+    },
+
+    exportCSV(data, columns, filename) {
+    // Ensure each row of data is an array; if not, wrap it in an array
+    let csvContent = columns.join(",") + "\n" + data.map(e => Array.isArray(e) ? e.join(",") : e).join("\n");
+    let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, filename);
+},
+
+    exportPDF(chartData, title, filename) {
+        const doc = new jsPDF();
+        doc.text(title, 20, 20);
+        let body = [];
+        if (chartData.labels && chartData.datasets) {
+            chartData.labels.forEach((label, index) => {
+                const row = [label];
+                chartData.datasets.forEach((dataset) => {
+                    row.push(dataset.data[index]);
+                });
+                body.push(row);
+            });
+        }
+        doc.autoTable({
+            head: [['Category', 'Amount']],
+            body: body
+        });
+        doc.save(filename);
     }
-}
+
+    }
+
 };
 
 
@@ -320,6 +374,29 @@ export default {
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.2s;
+}
+
+
+.pie-chart button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 12px;
+    color: white;
+    background-color: #4158D0;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.pie-chart button:hover {
+    background-color: #293B8F;
+    transform: scale(1.05);
+}
+
+.pie-chart button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(65, 88, 208, 0.5);
 }
 
 .line-chart button:hover {
