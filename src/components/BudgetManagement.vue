@@ -28,7 +28,7 @@
         <div class="budgetBreakdownContainer">
           
             <div class="totalPayment">
-              <div class="chart-container">
+              <div v-if="isChartDataAvailable" class="chart-container">
                   <Pie :data="chartData" :options="chartOptions" />  
                 </div>
                 <div class="salaryShow">
@@ -58,9 +58,10 @@
                         <p> Remaining Monthly Budget</p>
                     </div>
                 </div>
-                <div class = 'historical_compare'>
+                <div  class='historical_compare'>
                   <canvas id="barChart"></canvas>
                 </div>
+
               </div>
         </div>
         <div class="monthlySpendingContainer">
@@ -166,6 +167,12 @@ export default {
 
   },
   computed: {
+    isChartDataAvailable() {
+        return this.chartData.datasets[0].data.some(data => data > 0);
+    },
+    isBarChartDataAvailable() {
+      return this.historicalData.some(data => data.income > 0 || data.expenses > 0);
+  },
     formattedSalary() {
       return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(this.salary);
     },
@@ -276,6 +283,13 @@ export default {
       });
     },
     createBarChart() {
+      if (!this.isBarChartDataAvailable) {
+      if (this.barChart) {
+        this.barChart.destroy();  // Destroy the existing chart if any
+        this.barChart = null;
+      }
+      return;  // Exit the method if no data available
+    }
       const ctx = document.getElementById('barChart').getContext('2d');
       if (this.barChart) {
         this.barChart.destroy(); // Destroy existing chart to prevent memory leaks
