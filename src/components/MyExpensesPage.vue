@@ -85,9 +85,9 @@
         <div class="transactions-section">
           <!-- Today's Transactions -->
           <div class ='day-section'>
-            <h2>Today</h2>
+            <h2>Transactions for Selected Date: {{ selectedDate }}</h2>
             <div class="transaction-item" v-for="transaction in filteredTodayTransactions" :key="transaction.id">
-              <div :class="['transaction-icon', categoryIconMap[transaction.transactionCategory]]"></div>
+                <div :class="['transaction-icon', categoryIconMap[transaction.transactionCategory]]"></div>
               
               <div class="transaction-description">
                 <span class="transaction-title">{{ transaction.transactionCategory }}</span>
@@ -103,7 +103,7 @@
           <div class ='day-section'>
             <h2>Yesterday</h2>
             <div class="transaction-item" v-for="transaction in filteredYesterdayTransactions" :key="transaction.id">
-              <div class="transaction-icon shopping-icon"></div>
+              <div :class="['transaction-icon', categoryIconMap[transaction.transactionCategory]]"></div>
               <div class="transaction-description">
                 <span class="transaction-title">{{ transaction.transactionCategory }}</span>
                 <span class="transaction-subtitle">{{ transaction.transactionDescription }}</span> <br>
@@ -120,6 +120,9 @@
 
 
   <div class="right-panel">
+    <div class="date-picker-container">
+                <input type="date" v-model="selectedDate" @change="filterTransactionsByDate" />
+            </div>
     <div class="filter-transaction-header">
       <h2>Filter Transaction</h2>
       <button class="reset-button" @click="resetFilters">Reset</button>
@@ -192,6 +195,7 @@ data() {
       filterSortBy: '',
       totalExpensesForMonth: 0,
       totalIncomeForMonth: 0,
+      selectedDate: this.getCurrentDate(), 
       categoryIconMap: {
         'Salary':'bx bxs-bank',
         'Income':'bx bx-wallet',
@@ -215,14 +219,13 @@ data() {
 },
 mounted(){
   this.transactionDate = this.getCurrentDate();
-  this.fetchTransactions();
+  this.fetchTransactions(this.getCurrentDate());
   this.fetchTransactionData();
 },
 methods:{
   fetchTransactionData() {
         const currentUser = auth.currentUser;
         const userTransactionsRef = ref(db, `transactions/${currentUser.uid}`);
-
         onValue(userTransactionsRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -330,25 +333,57 @@ methods:{
     this.showTransactionForm = false;
     this.isInEditMode = false;
     this.selectedTransaction = null;
-    this.fetchTransactions();
+    this.fetchTransactions(this.selectedDate);
 },
-fetchTransactions() {
+  filterTransactionsByDate() {
+      const selectedDate = new Date(this.selectedDate);
+      this.fetchTransactions(selectedDate);
+    },
+
+    isSameDay(d1, d2) {
+    return d1.getFullYear() === d2.getFullYear() &&
+           d1.getMonth() === d2.getMonth() &&
+           d1.getDate() === d2.getDate();
+  },
+  matchesFilters(transaction) {
+    const matchesPaymentMethod = this.filterPaymentMethod ? transaction.transactionPaymentMethod === this.filterPaymentMethod : true;
+    const matchesCategory = this.filterCategory ? transaction.transactionCategory === this.filterCategory : true;
+    const matchesSearchTerm = this.searchTerm.trim() ? transaction.transactionDescription.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                                  transaction.transactionCategory.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                                  transaction.transactionVendor.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                                  transaction.transactionPaymentMethod.toLowerCase().includes(this.searchTerm.toLowerCase()) : true;
+    return matchesPaymentMethod && matchesCategory && matchesSearchTerm;
+  },
+  applySorting(a, b) {
+    if (this.filterSortBy === 'Highest') {
+      return parseFloat(b.transactionAmount) - parseFloat(a.transactionAmount);
+    } else if (this.filterSortBy === 'Lowest') {
+      return parseFloat(a.transactionAmount) - parseFloat(b.transactionAmount);
+    } else if (this.filterSortBy === 'Category A-Z') {
+      return a.transactionCategory.localeCompare(b.transactionCategory);
+    } else if (this.filterSortBy === 'Category Z-A') {
+      return b.transactionCategory.localeCompare(a.transactionCategory);
+    }
+    return 0;
+  },
+  fetchTransactions(selectedDate) {
     const currentUser = auth.currentUser;
     const userTransactionsRef = ref(db, `transactions/${currentUser.uid}`);
-
     onValue(userTransactionsRef, (snapshot) => {
         this.todayTransactions = [];
         this.yesterdayTransactions = [];
+        const selectedDateObject = new Date(selectedDate);
+        const yesterdayDateObject = new Date(selectedDate);
+        yesterdayDateObject.setDate(yesterdayDateObject.getDate() - 1);
         snapshot.forEach((childSnapshot) => {
             const transaction = childSnapshot.val();
             transaction.id = childSnapshot.key;
             const transactionDate = new Date(transaction.transactionDate);
-
-            if (this.isToday(transactionDate)) {
-                this.todayTransactions.push(transaction);
-            } else if (this.isYesterday(transactionDate)) {
-                this.yesterdayTransactions.push(transaction);
-            }
+            if (this.isSameDay(transactionDate, selectedDateObject)) {
+        this.todayTransactions.push(transaction);
+      } else if (this.isSameDay(transactionDate, yesterdayDateObject)) {
+        this.yesterdayTransactions.push(transaction);
+      }
         });
     });
 },
@@ -387,7 +422,7 @@ fetchTransactions() {
           .then(() => {
               this.showTransactionForm = false;
               alert('Transaction deleted successfully'); 
-              this.fetchTransactions();
+              this.fetchTransactions(this.selectedDate);
               this.isInEditMode = false;
               this.clearForm();
           })
@@ -414,56 +449,24 @@ fetchTransactions() {
       },
     computed: {
       filteredTodayTransactions() {
-          return this.todayTransactions
-            .filter(transaction => {
-              const matchesPaymentMethod = this.filterPaymentMethod ? transaction.transactionPaymentMethod === this.filterPaymentMethod : true;
-              const matchesCategory = this.filterCategory ? transaction.transactionCategory === this.filterCategory : true;
-              const matchesSearchTerm = this.searchTerm.trim() ? transaction.transactionDescription.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                                        transaction.transactionCategory.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                                        transaction.transactionVendor.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                                        transaction.transactionPaymentMethod.toLowerCase().includes(this.searchTerm.toLowerCase()) : true;
-              return matchesPaymentMethod && matchesCategory && matchesSearchTerm;
-            })
-            .sort((a, b) => {
-              if (this.filterSortBy === 'Highest') {
-                return parseFloat(b.transactionAmount) - parseFloat(a.transactionAmount);
-              } else if (this.filterSortBy === 'Lowest') {
-                return parseFloat(a.transactionAmount) - parseFloat(b.transactionAmount);
-              } else if (this.filterSortBy === 'Category A-Z') {
-        return a.transactionCategory.localeCompare(b.transactionCategory);
-      }
-      // Sort by Category Alphabetically (Descending)
-      else if (this.filterSortBy === 'Category Z-A') {
-        return b.transactionCategory.localeCompare(a.transactionCategory);
-      }
-      return 0;
-            });
-        },
-        filteredYesterdayTransactions() {
+    return this.todayTransactions
+      .filter(transaction => {
+        const transactionDate = new Date(transaction.transactionDate);
+        const isSelectedDateToday = this.isSameDay(transactionDate, new Date(this.selectedDate));
+        return isSelectedDateToday && this.matchesFilters(transaction);
+      })
+      .sort(this.applySorting);
+  },
+  filteredYesterdayTransactions() {
     return this.yesterdayTransactions
       .filter(transaction => {
-        const matchesPaymentMethod = this.filterPaymentMethod ? transaction.transactionPaymentMethod === this.filterPaymentMethod : true;
-        const matchesCategory = this.filterCategory ? transaction.transactionCategory === this.filterCategory : true;
-        const matchesSearchTerm = this.searchTerm.trim() ? transaction.transactionDescription.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                                  transaction.transactionCategory.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                                  transaction.transactionVendor.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                                  transaction.transactionPaymentMethod.toLowerCase().includes(this.searchTerm.toLowerCase()) : true;
-        return matchesPaymentMethod && matchesCategory && matchesSearchTerm;
+        const transactionDate = new Date(transaction.transactionDate);
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const isSelectedDateYesterday = this.isSameDay(transactionDate, yesterday);
+        return isSelectedDateYesterday && this.matchesFilters(transaction);
       })
-      .sort((a, b) => {
-        if (this.filterSortBy === 'Highest') {
-          return parseFloat(b.transactionAmount) - parseFloat(a.transactionAmount);
-        } else if (this.filterSortBy === 'Lowest') {
-          return parseFloat(a.transactionAmount) - parseFloat(b.transactionAmount);
-        } else if (this.filterSortBy === 'Category A-Z') {
-        return a.transactionCategory.localeCompare(b.transactionCategory);
-      }
-      // Sort by Category Alphabetically (Descending)
-      else if (this.filterSortBy === 'Category Z-A') {
-        return b.transactionCategory.localeCompare(a.transactionCategory);
-      }
-      return 0;
-      });
+      .sort(this.applySorting);
   }
     } 
 }
@@ -735,5 +738,17 @@ margin:2rem
     font-weight: bold; /* Make the text bold */
     color: #333; /* Set text color to a dark shade */
     margin-bottom: 10px; /* Add space between the heading and other content */
+}
+.date-picker-container {
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+}
+
+input[type="date"] {
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 16px;
 }
 </style>
