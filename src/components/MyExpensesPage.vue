@@ -223,26 +223,23 @@ mounted(){
   this.fetchTransactionData();
 },
 methods:{
-  fetchTransactionData() {
+  fetchTransactionData(selectedDate) {
         const currentUser = auth.currentUser;
         const userTransactionsRef = ref(db, `transactions/${currentUser.uid}`);
         onValue(userTransactionsRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 this.transactionData = Object.values(data); // Assign transaction data to the component's property
-                this.calculateTotalExpensesForMonth(); // Calculate total expenses for the month after fetching transaction data
-                this.calculateTotalIncomeForMonth();
+                this.calculateTotalExpensesForMonth(this.selectedDate); // Calculate total expenses for the month after fetching transaction data
+                this.calculateTotalIncomeForMonth(this.selectedDate);
             }
         });
     },
-    calculateTotalExpensesForMonth() {
-    // Check if transactionData is available
+    calculateTotalExpensesForMonth(selectedDate) {
     if (this.transactionData) {
-        // Calculate total expenses for the month using this.transactionData
-        const currentDate = new Date();
+        const currentDate = new Date(selectedDate);
         const currentMonth = currentDate.getMonth() + 1;
 
-        // Filter transactions for the current month and exclude transactions categorized as 'Salary' and 'Income'
         const currentMonthExpenses = this.transactionData.filter(transaction => {
             const transactionDate = new Date(transaction.transactionDate);
             return (
@@ -260,14 +257,11 @@ methods:{
         console.error("Transaction data is not available.");
     }
   },
-  calculateTotalIncomeForMonth() {
-        // Check if transactionData is available
+  calculateTotalIncomeForMonth(selectedDate) {
         if (this.transactionData) {
-            // Calculate total income for the month using this.transactionData
-            const currentDate = new Date();
+            const currentDate = new Date(selectedDate);
             const currentMonth = currentDate.getMonth() + 1;
 
-            // Filter transactions for the current month and include only transactions categorized as 'Income'
             const currentMonthIncome = this.transactionData.filter(transaction => {
                 const transactionDate = new Date(transaction.transactionDate);
                 return (
@@ -338,6 +332,7 @@ methods:{
   filterTransactionsByDate() {
       const selectedDate = new Date(this.selectedDate);
       this.fetchTransactions(selectedDate);
+      this.fetchTransactionData(selectedDate)
     },
 
     isSameDay(d1, d2) {
@@ -366,6 +361,7 @@ methods:{
     }
     return 0;
   },
+  
   fetchTransactions(selectedDate) {
     const currentUser = auth.currentUser;
     const userTransactionsRef = ref(db, `transactions/${currentUser.uid}`);

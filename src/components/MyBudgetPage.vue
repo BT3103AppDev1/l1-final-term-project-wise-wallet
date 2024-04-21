@@ -26,13 +26,13 @@
         </div>
     </div >
     <div class="chart-container">
-    <div class="pie-chart">
+    <div class="pie-chart" v-if="isPieChartDataAvailable">
         <button @click="exportPieChart('csv')">Export CSV</button>
         <button @click="exportPieChart('pdf')">Export PDF</button>
         <Pie :data="chartData" :options="chartOptions" />
 
     </div>
-    <div class="line-chart">
+    <div class="line-chart" v-if="isLineChartDataAvailable">
     <button @click="exportLineChart('csv')">Export CSV</button>
     <button @click="exportLineChart('pdf')">Export PDF</button>
     <Line :data="lineChartData" :options="lineChartOptions" />
@@ -82,6 +82,12 @@ export default {
         };
     },
     computed: {
+        isPieChartDataAvailable() {
+        return this.chartData.datasets.some(dataset => dataset.data.length > 0 && dataset.data.some(data => data > 0));
+    },
+    isLineChartDataAvailable() {
+        return this.lineChartData.datasets.some(dataset => dataset.data.length > 0 && dataset.data.some(data => data > 0));
+    },
     chartData() {
       return {
         labels: ['Investment', 'Payment', 'Savings', 'Remaining Budget'],
