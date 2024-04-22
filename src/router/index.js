@@ -8,6 +8,7 @@ import CustomerSupportBefore from '@/before-login/CustomerSupportBefore.vue'
 
 import Dashboard from '@/after-login/Dashboard.vue'
 import profilePage from '@/after-login/ProfilePage.vue'
+import changePassword from '@/after-login/ChangePasswordPage.vue'
 import budgetManagement from '@/after-login/BudgetManagementPage.vue'
 import plannedPayments from '@/after-login/PlannedPayment.vue'
 import myExpenses from '@/after-login/MyExpensesPage.vue'
@@ -64,6 +65,11 @@ const routes = [
     component:profilePage
 },
 {
+    path:'/changePassword',
+    name:'change-password',
+    component:changePassword
+},
+{
     path:'/myExpenses',
     name:'my-Expenses',
     component:myExpenses
@@ -81,7 +87,7 @@ const routes = [
 {
     path: '/customer-support-after',
     name: 'customer-support-after',
-    component: CustomerSupportAfter,
+    component: CustomerSupportAfter
 },
 {
     path: '/customer-support-before',

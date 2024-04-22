@@ -1,12 +1,12 @@
 <script>
-import CustomerSupport from '@/components/CustomerSupportPage.vue'
+import CustomerSupportPageAfter from '@/components/CustomerSupportPageAfter.vue'
 import NavBar from '@/components/LoginNavBar.vue'
 
 export default {
-  name: 'CustomerSupportAfter',
+  name: 'CustomerSupportAfterPage',
   components: {
     NavBar,
-    CustomerSupport
+    CustomerSupportPageAfter
   }
 }
 </script>
@@ -14,6 +14,6 @@ export default {
 <template>
   <main>
     <NavBar />
-    <CustomerSupport />
+    <CustomerSupportPageAfter />
   </main>
 </template>

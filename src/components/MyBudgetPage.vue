@@ -39,10 +39,11 @@
     <button @click="setViewMode('daily')">Show Daily Transactions</button>
     <button @click="setViewMode('monthly')">Show Monthly Transactions</button>
     <button @click="setViewMode('yearly')">Show Yearly Transactions</button>
-
+    </div>
 </div>
-</div>
-
+<div class='historical_compare'>
+        <canvas id="hist_Chart"></canvas>
+    </div>
     </div>
 </template>
 
@@ -55,7 +56,7 @@ import { onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
 import {ref as dbRef, push, onValue, remove, update,get} from 'firebase/database';
 import { auth, db } from '@/assets/firebase.js';
 import { Pie,Line} from 'vue-chartjs';
-import { Chart as ChartJS, Tooltip, Legend, ArcElement, Title, LineElement } from 'chart.js';
+import { Chart as ChartJS, Tooltip, Legend, ArcElement, Title, LineElement } from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
@@ -69,6 +70,8 @@ export default {
     components: { Pie, Line},
     data() {
         return {
+            historicalData: [],
+            barChart: null,
             investment: 0,
             payment: 0,
             savings: 0,
@@ -143,6 +146,7 @@ export default {
   },
     
     mounted() {
+        this.fetchHistoricalData();
         this.fetchBudgetAmounts();
         this.fetchTransactions();
     },
@@ -236,7 +240,101 @@ export default {
             }
         });
     },
+    fetchHistoricalData() {
+      const currentUser = auth.currentUser;
+      const userTransactionsRef = dbRef(db, `transactions/${currentUser.uid}`);
 
+      onValue(userTransactionsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          const transactions = Object.values(data);
+
+          // Group transactions by month and calculate total income and expenses for each month
+          const groupedData = {};
+          transactions.forEach(transaction => {
+            const monthYear = transaction.transactionDate.substring(0, 7); // Extract month and year (e.g., "2024-04")
+            if (!groupedData[monthYear]) {
+              groupedData[monthYear] = { monthYear, income: 0, expenses: 0 };
+            }
+            if (transaction.transactionCategory === 'Income' || transaction.transactionCategory === 'Salary') {
+              groupedData[monthYear].income += parseFloat(transaction.transactionAmount);
+            } else {
+              groupedData[monthYear].expenses += parseFloat(transaction.transactionAmount);
+            }
+          });
+
+          // Convert grouped data to array format for Chart.js
+          this.historicalData = Object.values(groupedData);
+
+          // Sort historical data by month sequence
+          this.historicalData.sort((a, b) => {
+            return new Date(a.monthYear) - new Date(b.monthYear);
+          });
+
+          // Call method to create bar chart
+          this.createBarChart();
+        }
+      });
+    },
+    createBarChart() {
+        const ctx = document.getElementById('hist_Chart').getContext('2d');
+        if (this.barChart) {
+            this.barChart.destroy(); // Destroy existing chart to prevent memory leaks
+        }
+        this.barChart = new ChartJS(ctx, {
+            type: 'bar',
+            data: {
+            labels: this.historicalData.map(data => data.monthYear),
+            datasets: [
+                {
+                label: 'Income',
+                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                borderWidth: 1,
+                data: this.historicalData.map(data => data.income)
+                },
+                {
+                label: 'Expenses',
+                backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                borderWidth: 1,
+                data: this.historicalData.map(data => Math.abs(data.expenses))
+                }
+            ]
+            },
+            options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                stacked: false,
+                grid: {
+                    display: false
+                }
+                },
+                y: {
+                stacked: false,
+                beginAtZero: true,
+                ticks: {
+                    callback: function (value, index, values) {
+                    return '$' + Math.abs(value).toLocaleString();
+                    }
+                }
+                }
+            },
+            plugins: {
+                legend: {
+                position: 'top'
+                },
+                title: {
+                display: true,
+                text: 'Monthly Income vs Expenses',
+                padding: {
+                    top: 20
+                }
+                }
+            }
+            }
+        });
+    },
     exportPieChart(format) {
     if (format === 'csv') {
         // Assume this.chartData.labels are the row headings and this.chartData.datasets[0].data are the corresponding values
@@ -413,6 +511,13 @@ export default {
 .line-chart button:focus {
     outline: none;
     box-shadow: 0 0 0 2px rgba(65, 88, 208, 0.5);
+}
+.historical_compare{
+    position: relative;
+  width: 40%;
+  height: 400px; /* Adjust height as needed */
+  margin-top: 20px;
+  margin:1rem;
 }
 
 </style>

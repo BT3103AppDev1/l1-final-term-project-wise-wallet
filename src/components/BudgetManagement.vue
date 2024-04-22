@@ -58,10 +58,14 @@
                         <p> Remaining Monthly Budget</p>
                     </div>
                 </div>
+                <div class="historical_compare">
+                  <canvas id = 'budgetChart'></canvas>
+                </div>
+                <!--
                 <div  class='historical_compare'>
                   <canvas id="barChart"></canvas>
                 </div>
-
+                -->
               </div>
         </div>
         <div class="monthlySpendingContainer">
@@ -75,7 +79,7 @@
   <div class="payment-item" v-for="(item, index) in budgetItems" :key="index">
     <!-- Editing UI -->
     <div v-if="editingItem === item.id">
-      <input v-model="editedName" placeholder="Item Name" type="text" />
+      <input v-model="editedName" placeholder="Item Name" type="option" />
       <input v-model="editedAmount" placeholder="Amount" type="number" />
       <button @click="editItem">Save</button>
       <button @click="cancelEdit">Cancel</button>
@@ -83,7 +87,7 @@
     <!-- Display UI -->
     <div v-else class="payment-display">
       <div class="payment-left">
-        <i class='bx bx-cart-add'></i> 
+        <div :class="['transaction-icon', categoryIconMap[item.name]]"></div>
         <strong class="item-name">{{ item.name }}</strong>
         <i class='bx bx-trash' @click="promptDelete(item.id)"></i> 
         </div>
@@ -103,7 +107,23 @@
                 <div class="modal-content">
                     <span class="close" @click="showModal = false">&times;</span>
                     <h2>Add New Budget Item</h2>
-                    <input v-model="newItemName" placeholder="Item Name" type="text" />
+                    <select class="category-select" v-model="newItemName" placeholder="Item Name">
+                    <option value="">Choose Category</option>
+                    <option value="Food">Food</option>
+                    <option value="Transportation">Transportation</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Housing">Housing</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Clothing">Clothing</option>
+                    <option value="Healthcare">Healthcare</option>
+                    <option value="Education">Education</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Gifts">Gifts</option>
+                    <option value="Insurance">Insurance</option>
+                    <option value="Investments">Investments</option>
+                    <option value="Charity">Charity</option>
+                      <!-- Add other categories here -->
+                    </select>
                     <input v-model="newItemAmount" placeholder="Amount" type="number" />
                     <button @click="addNewItem">Add Item</button>
                 </div>
@@ -162,7 +182,22 @@ export default {
     editedAmount: 0,
     itemIdToDelete: null,
     showModalDelete: false,
-
+    categoryIconMap: {
+        'Food': 'bx bx-bowl-rice',
+        'Transportation': 'bx bx-car',
+        'Utilities': 'bx bx-shower',
+        'Housing':'bx bx-building-house',
+        'Entertainment':'bx bx-music',
+        'Clothing':'bx bxs-t-shirt',
+        'Healthcare': 'bx bx-heart',
+        'Education':'bx bx-book',
+        'Travel':'bx bxs-plane-take-off',
+        'Gifts':'bx bx-gift',
+        'Insurance':'bx bx-shield-plus',
+        'Investments':'bx bx-money-withdraw',
+        'Charity':'bx bx-donate-heart',
+        // Add more mappings for other transaction categories as needed
+        }
     }
 
   },
@@ -245,8 +280,138 @@ export default {
   },
   mounted() {
     this.fetchHistoricalData();
+    this.renderBudgetChart();
   },
-  methods: {    fetchHistoricalData() {
+  methods: {
+      async renderBudgetChart(){
+        const currentUser = auth.currentUser;
+        const userTransactionsRef = dbRef(db, `transactions/${currentUser.uid}`);
+        const userBudgetRef = dbRef(db, `budgetItems/${currentUser.uid}`);
+        try {
+
+        // Get current date
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth() + 1; // Months are zero-based  
+        // Fetch user's transactions and budget items
+        const transactionsSnapshot = await get(userTransactionsRef);
+        const budgetSnapshot = await get(userBudgetRef);
+
+        const transactions = transactionsSnapshot.val();
+        const budgetItems = budgetSnapshot.val();
+
+        // Filter transactions for the current month
+        const currentMonthTransactions = {};
+        if (transactions) {
+          for (const transactionId in transactions) {
+            const transaction = transactions[transactionId];
+            const transactionDate = new Date(transaction.transactionDate);
+            const transactionMonth = transactionDate.getMonth() + 1; // Months are zero-based
+            if (transactionMonth === currentMonth) {
+              currentMonthTransactions[transactionId] = transactionId;
+            }
+          }
+        }
+        // Prepare data for chart
+        const labels = [];
+        const plannedData = [];
+        const spentData = [];
+
+        for (const itemId in budgetItems) {
+          labels.push(budgetItems[itemId].name); // Use name instead of ID
+          plannedData.push(budgetItems[itemId].amount);
+
+          let spentAmount = 0;
+          if (transactions) {
+            for (const transactionId in currentMonthTransactions) {
+              const transaction = transactions[transactionId];
+              if (transaction.transactionCategory === budgetItems[itemId].name) {
+              spentAmount += Math.abs(parseFloat(transaction.transactionAmount));
+              }
+            }
+          }
+          spentData.push(spentAmount.toFixed(2)); // Convert to 2 decimal places
+        }
+        labels.push('Investment')
+        plannedData.push(this.investment)
+        let spentAmount = 0;
+          if (transactions) {
+            for (const transactionId in currentMonthTransactions) {
+              const transaction = transactions[transactionId];
+              if (transaction.transactionCategory === 'Investment') {
+              spentAmount += Math.abs(parseFloat(transaction.transactionAmount));
+              }
+            }
+          }
+        spentData.push(spentAmount.toFixed(2)); // Convert to 2 decimal places
+
+                // Calculate total income and expenses
+        //let totalIncome = 0;
+        //let totalExpenses = 0;
+
+        //for (const transactionId in currentMonthTransactions) {
+          //const transaction = transactions[transactionId];
+          //if (transaction.transactionCategory === 'Income' || transaction.transactionCategory==='Salary') {
+            //totalIncome += parseFloat(transaction.transactionAmount);
+         // } else {
+            //totalExpenses += parseFloat(transaction.transactionAmount);
+          //}
+        //}
+        //const currentSavings = totalIncome + totalExpenses;
+        //console.log(currentSavings)
+        //labels.push('Savings')  
+        //plannedData.push(this.savings)
+        //spentData.push(currentSavings)
+
+        // Render bar chart
+        const ctx = document.getElementById('budgetChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Planned Amount',
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                data: plannedData,
+              },
+              {
+                label: 'Spent Amount',
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1,
+                data: spentData,
+              },
+            ],
+          },
+          options: {
+            plugins: {
+              title: {
+                display: true,
+                text: 'Monthly Financial Overview: Budget Goals vs. Spending',
+                font: {
+                  size: 16,
+                },
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function(value) {
+                    return '$' + value; // Add currency symbol to y-axis labels
+                  }
+                }
+              },
+            },
+          },
+        });
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    },
+      fetchHistoricalData() {
       const currentUser = auth.currentUser;
       const userTransactionsRef = dbRef(db, `transactions/${currentUser.uid}`);
 
@@ -790,6 +955,7 @@ deleteItem(itemId) {
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     margin-left:2rem;
+    margin-right:5rem;
     text-align: left;
 }
 .spendingShow h1{
@@ -833,7 +999,7 @@ deleteItem(itemId) {
 .payment-left{
     align-items: center;
 }
-.payment-left i{
+.payment-left i, .transaction-icon{
     font-size:26px;
     margin-right:0.5rem;
 }
@@ -843,7 +1009,7 @@ deleteItem(itemId) {
 .payment-item{
     font-size:20px;
 }
-.payment-item i{
+.payment-item i, .transaction-icon{
     margin-right:0.5rem;
 }
 .modal {
@@ -896,7 +1062,7 @@ deleteItem(itemId) {
     padding-bottom: 10px;
 }
 
-input[type="text"] {
+input[type="text"],select {
   font-size: 16px; 
   padding: 10px; 
   border: 1px solid #ccc; 
@@ -907,7 +1073,7 @@ input[type="text"] {
   transition: border-color 0.3s, box-shadow 0.3s; 
 }
 
-input[type="text"]:focus {
+input[type="text"]:focus, select{
   border-color: #007bff; 
   box-shadow: 0 0 0 2px rgba(0,123,255,.25); 
   outline: none;
@@ -975,5 +1141,7 @@ button:hover {
   margin-top: 20px;
   margin:1rem;
 }
-
+.bx-trash, .bx-edit-alt{
+  cursor:grab
+}
 </style>
