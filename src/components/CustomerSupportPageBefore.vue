@@ -115,12 +115,12 @@ export default {
             ],
         };
     },
+    mounted() {
+            this.scrollToBottom();
+    },
     methods: {
         chatMessages() {
             return this.messagesHistory
-        },
-        mounted() {
-            this.scrollToBottom();
         },
         scrollToBottom() {
             if (this.$refs.chatContainer) {
@@ -302,6 +302,13 @@ export default {
     padding: 10px 20px;
     color: white;
     font-weight: bold;
+    cursor: pointer;
+}
+
+.chat-bot:hover,
+.email-btn:hover {
+    background: linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
+    color: white;
 }
 
 .customerSupportContainer {
@@ -330,27 +337,26 @@ export default {
 
 .contactIcons {
     display: flex;
-    justify-content: space-between;
-    /* Spread items evenly */
-    align-items: center;
-    padding: 1rem;
+    justify-content: space-around; /* Spread items evenly */
+    align-items: flex-start; /* Align items to the start to handle different content heights */
+    flex-wrap: wrap; /* Wrap items if needed */
 }
 
 .contactWays {
-    background: #f5f5f5;
-    width: 550px;
-    /* Set a fixed width */
-    height: 200px;
-    /* Set a fixed height */
-    padding: 20px;
-    border-radius: 20px;
-    font-size: 20px;
-    border: 1px solid rgba(0, 0, 0, 0.5);
-    text-align: center;
-    margin: 0 10px;
-    /* Add margin between boxes */
+    flex: 1; /* Each .contactWays takes equal space */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    max-width: calc(33.333% - 20px); /* Adjust based on your actual margins/paddings */
     box-sizing: border-box;
-    /* Include padding and border in the width */
+    margin: 10px; /* Spacing between the boxes */
+    padding: 20px; /* Padding inside the boxes */
+    background: #f5f5f5;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    text-align: center;
+    min-height: 200px; /* Minimum height to maintain the design */
 }
 
 .contactWays i {
@@ -430,7 +436,8 @@ export default {
 }
 
 .search-container button:hover {
-    background-color: #0056b3;
+    background: linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
+    color: white;
 }
 
 .askQuestion .faqArticles {

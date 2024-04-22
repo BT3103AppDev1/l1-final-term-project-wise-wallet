@@ -81,7 +81,7 @@ const routes = [
 {
     path: '/customer-support-after',
     name: 'customer-support-after',
-    component: CustomerSupportAfter,
+    component: CustomerSupportAfter
 },
 {
     path: '/customer-support-before',
