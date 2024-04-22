@@ -130,16 +130,23 @@
     <div class="filters-container">
       <div class="filter-section">
           <h2>Filter By: </h2> 
-          <button class="filter-button" @click="filterPaymentMethod = 'Bank Transfer'">Bank Transfer</button>
-          <button class="filter-button" @click="filterPaymentMethod = 'Credit Card'">Credit Card</button>
-          <button class="filter-button" @click="filterPaymentMethod = 'Debit Card'">Debit Card</button>
+          <button :class="{'filter-button': true, 'active': activeFilterPaymentMethod === 'Bank Transfer'}"
+            @click="setFilterPaymentMethod('Bank Transfer')">Bank Transfer</button>
+    <button :class="{'filter-button': true, 'active': activeFilterPaymentMethod === 'Credit Card'}"
+            @click="setFilterPaymentMethod('Credit Card')">Credit Card</button>
+    <button :class="{'filter-button': true, 'active': activeFilterPaymentMethod === 'Debit Card'}"
+            @click="setFilterPaymentMethod('Debit Card')">Debit Card</button>
         </div>
         <div class="sort-section">
           <h2>Sort By:</h2>
-          <button class="sort-button" @click="filterSortBy = 'Highest'">Highest</button>
-          <button class="sort-button" @click="filterSortBy = 'Lowest'">Lowest</button>
-          <button class="sort-button" @click="filterSortBy = 'Category A-Z'">Category A-Z</button>
-          <button class="sort-button" @click="filterSortBy = 'Category Z-A'">Category Z-A</button>
+    <button :class="{'sort-button': true, 'active': activeSortBy === 'Highest'}"
+            @click="setSortBy('Highest')">Highest</button>
+    <button :class="{'sort-button': true, 'active': activeSortBy === 'Lowest'}"
+            @click="setSortBy('Lowest')">Lowest</button>
+    <button :class="{'sort-button': true, 'active': activeSortBy === 'Category A-Z'}"
+            @click="setSortBy('Category A-Z')">Category A-Z</button>
+    <button :class="{'sort-button': true, 'active': activeSortBy === 'Category Z-A'}"
+            @click="setSortBy('Category Z-A')">Category Z-A</button>
         </div>
         <div class="category-section">
           <h2>Category:</h2>
@@ -224,6 +231,14 @@ mounted(){
   this.fetchTransactionData();
 },
 methods:{
+  setFilterPaymentMethod(method) {
+    this.activeFilterPaymentMethod = method;
+    this.filterPaymentMethod = method;
+  },
+  setSortBy(sortMethod) {
+    this.activeSortBy = sortMethod;
+    this.filterSortBy = sortMethod;
+  },
   fetchTransactionData(selectedDate) {
         const currentUser = auth.currentUser;
         const userTransactionsRef = ref(db, `transactions/${currentUser.uid}`);
@@ -449,19 +464,14 @@ methods:{
     return this.todayTransactions
       .filter(transaction => {
         const transactionDate = new Date(transaction.transactionDate);
-        const isSelectedDateToday = this.isSameDay(transactionDate, new Date(this.selectedDate));
-        return isSelectedDateToday && this.matchesFilters(transaction);
+        return this.matchesFilters(transaction);
       })
       .sort(this.applySorting);
   },
   filteredYesterdayTransactions() {
     return this.yesterdayTransactions
       .filter(transaction => {
-        const transactionDate = new Date(transaction.transactionDate);
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const isSelectedDateYesterday = this.isSameDay(transactionDate, yesterday);
-        return isSelectedDateYesterday && this.matchesFilters(transaction);
+        return this.matchesFilters(transaction);
       })
       .sort(this.applySorting);
   }
@@ -597,7 +607,6 @@ margin-bottom: 10px; /* Bottom margin for spacing between rows */
 align-items: flex-start; /* Align to the end (right side) */
 width: 200%; /* Allow each section to fill the width */
 padding: auto;
-
 }
 
 .filter-section,
@@ -672,8 +681,8 @@ margin:2rem
 
 
 .filter-button, .sort-button {
-  background-color: #E4E7F0;
-  border: none;
+  background-color: #5D5FEF;
+  color: white;
   width: 110%;
   padding: 10px;
   border-radius: 15px;
@@ -681,8 +690,8 @@ margin:2rem
   margin-bottom: 10px; /* Bottom margin for spacing between rows */
 }
 
-.filter-button.active {
-  background-color: #5D5FEF;
+.filter-button.active, .sort-button.active {
+  background-color: #4b4b55; /* Darker shade for active button */
   color: white;
 }
 
