@@ -58,9 +58,10 @@
                 <i class='bx bx-user-circle'></i>
                 <div class="profileInfo">
                     <h3 id = "displayName"></h3>
-                    <p id = 'userEmail'>LimAhBeng@gmail.com</p>
+                    <p id = 'userEmail'></p>
                 </div>
             </div>
+            <router-link to="/myProfile" class="router-link" style="text-decoration: none; color: inherit;">
             <div class="profileStuff">
                 <i class='bx bx-user'></i>
                 <div class="profileInfo">
@@ -68,6 +69,7 @@
                     <p>Account settings and more</p>
                 </div>
             </div>
+            </router-link>
             <div class="profileStuff">
                 <i class='bx bx-money-withdraw'></i>
                 <div class="profileInfo">
@@ -119,6 +121,10 @@ export default {
     mounted() {
     // Fetch and calculate total expenses and total income when the component is mounted
     this.fetchTransactionData();
+    const currentUser = auth.currentUser;
+    console.log(currentUser.displayName)
+    // Update the email in the h4 element
+    document.getElementById('userEmail').innerText = currentUser.email
     },
     methods:{
         fetchTransactionData() {
@@ -352,6 +358,9 @@ export default {
 .profileInfo {
     display: flex;
     flex-direction: column; /* Display children vertically */
+}
+.profileStuff:hover{
+    color: red;
 }
 
 .profileInfo h3,

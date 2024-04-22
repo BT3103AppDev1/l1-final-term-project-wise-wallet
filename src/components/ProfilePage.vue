@@ -3,12 +3,16 @@
         <h1>Profile</h1>
             <p>Edit and manage your personal and account information here</p>
             <div class="profileOptions">
+                <router-link to="/myProfile" class="router-link" style="text-decoration: none; color: inherit;">
                 <div class="personalInformation">
                     <h2>Personal Information</h2>
                 </div>
+                </router-link>
+                <router-link to="/changePassword" class="router-link" style="text-decoration: none; color: inherit;">
                 <div class="passwordReset">
                     <h2>Change Password</h2>
                 </div>
+                </router-link>
                 <div class="verificationCenter">
                     <h2>Verification Center</h2>
                 </div>

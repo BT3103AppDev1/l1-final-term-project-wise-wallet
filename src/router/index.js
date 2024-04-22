@@ -8,6 +8,7 @@ import resetPassword from '@/before-login/ForgetPassword.vue'
 
 import Dashboard from '@/after-login/Dashboard.vue'
 import profilePage from '@/after-login/ProfilePage.vue'
+import changePassword from '@/after-login/ChangePasswordPage.vue'
 import budgetManagement from '@/after-login/BudgetManagementPage.vue'
 import plannedPayments from '@/after-login/PlannedPayment.vue'
 import myExpenses from '@/after-login/MyExpensesPage.vue'
@@ -65,6 +66,11 @@ const routes = [
     path:'/myProfile',
     name:'profile-page',
     component:profilePage
+},
+{
+    path:'/changePassword',
+    name:'change-password',
+    component:changePassword
 },
 {
     path:'/myExpenses',

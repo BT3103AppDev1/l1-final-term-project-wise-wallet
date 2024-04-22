@@ -160,7 +160,8 @@
                     <option value="Insurance">Insurance</option>
                     <option value="Investments">Investments</option>
                     <option value="Charity">Charity</option>
-                    <option value="Other">Other</option>          </select>
+                    <option value="Other">Other</option>
+                  </select>
       </div>
     <div class="status-message">
       <div class="status-icon"></div>
