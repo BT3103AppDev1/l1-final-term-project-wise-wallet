@@ -9,7 +9,7 @@
         </label>
         <nav class="navItems">
             <a href="#">How it works</a>
-            <router-link to ='/faq' class="router-link">FAQ</router-link>
+            <router-link to ='/customer-support-before' class="router-link">FAQ</router-link>
             <a href="#">Testimonials</a>
             <a href="#">About us</a>
             <router-link to ='/login' class="router-link">Login</router-link>

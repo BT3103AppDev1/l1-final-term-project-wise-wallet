@@ -25,7 +25,7 @@
                 </div>
         </div>
         </router-link>
-        <router-link to ='/myProfile' class="router-link" style="text-decoration: none;">
+        <router-link to ='/customer-support-after' class="router-link" style="text-decoration: none;">
         <div class="sidebar-item">
             <i class='bx bx-help-circle' ></i>
                 <div class="profileInfo">

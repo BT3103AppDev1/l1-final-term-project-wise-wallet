@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
 import { getAuth, setPersistence, browserSessionPersistence } from 'firebase/auth';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCzjdxLvhDyf6QoRXezNOgT2Ngv5nv_faI",
@@ -13,9 +14,9 @@ const firebaseConfig = {
   measurementId: "G-24ECY391EE"
 };
 
-  const firebaseApp = initializeApp(firebaseConfig);
-  const db = getDatabase(firebaseApp);
-  const auth = getAuth(firebaseApp);
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getDatabase(firebaseApp);
+const auth = getAuth(firebaseApp);
+const storage = getStorage(firebaseApp);
 
-  
-  export { firebaseApp, auth,db };
+export { firebaseApp, auth, db, storage };
