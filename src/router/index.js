@@ -3,8 +3,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/before-login/Home.vue'
 import Login from '@/before-login/LoginPage.vue'
 import Registration from '@/before-login/RegistrationPage.vue'
-import FAQ from '@/before-login/FAQ.vue'
 import resetPassword from '@/before-login/ForgetPassword.vue'
+import CustomerSupportBefore from '@/before-login/CustomerSupportBefore.vue'
 
 import Dashboard from '@/after-login/Dashboard.vue'
 import profilePage from '@/after-login/ProfilePage.vue'
@@ -13,6 +13,8 @@ import plannedPayments from '@/after-login/PlannedPayment.vue'
 import myExpenses from '@/after-login/MyExpensesPage.vue'
 import ForumPage from '@/after-login/ForumPage.vue'
 import MyBudgetPage from '@/after-login/MyBudgetPage.vue'
+import CreatePostPage from '@/after-login/CreatePostPage.vue'
+import CustomerSupportAfter from '@/after-login/CustomerSupportAfter.vue'
 
 const routes = [
 {
@@ -29,11 +31,6 @@ const routes = [
     path:'/registration',
     name:'registration-page',
     component: Registration    
-},
-{
-    path:'/faq',
-    name:'faq-page',
-    component: FAQ
 },
 {
     path:'/dashboard',
@@ -75,6 +72,21 @@ const routes = [
     path: '/forum',
     name: 'forum-page',
     component: ForumPage
+},
+{
+    path: '/create-post',
+    name: 'create-post',
+    component: CreatePostPage
+},
+{
+    path: '/customer-support-after',
+    name: 'customer-support-after',
+    component: CustomerSupportAfter,
+},
+{
+    path: '/customer-support-before',
+    name: 'customer-support-before',
+    component: CustomerSupportBefore
 }
 ]
 const router = createRouter({
