@@ -155,10 +155,13 @@ export default {
         },
         async sendMessageToOpenAPI(event) {
             event.preventDefault();
-            let message = document.getElementById("messageInput").value
-            document.getElementById("messageInput").value=""
-            message = message !== undefined ? message.trim() : message
-            console.log("send mesage ", message)
+            // Ensure the message input element exists and is of the correct type
+            const messageInputElement = document.getElementById("messageInput");
+            if (messageInputElement instanceof HTMLInputElement) {
+            let message = messageInputElement.value;
+            messageInputElement.value = ""; // Reset the input field after getting the value
+
+            message = message !== undefined ? message.trim() : message;
             if (!message || message === "") {
                 console.log('returning')
                 return
@@ -198,7 +201,8 @@ export default {
             }
             return this.searchArticles();
         }
-    }
+    }, 
+},
 }
 </script>
 
