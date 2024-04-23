@@ -133,16 +133,20 @@
                             <p>Frequency of Payment: <span class="transaction-date">{{ transaction.transactionFrequency }}</span></p>
                             <p>Payment Method: <span class="transaction-date">{{ transaction.transactionPaymentMethod }}</span></p>
                             <p>Vendor: <span class="transaction-date">{{ transaction.transactionVendor }}</span></p>
+                            <button @click="promptDelete(transaction.id)">Delete</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <ConfirmationModal :isVisible="showConfirmModal" message="Are you sure you want to delete this transaction?" @confirm="deleteTransaction" @cancel="cancelDelete"/>
 </template>
 <script>
 import {auth, db} from '@/assets/firebase.js';
 import {ref, push, onValue} from 'firebase/database';
+import ConfirmationModal from '@/components/ConfirmationModal.vue'; 
+
 export default{
     data(){
         return {
@@ -155,8 +159,13 @@ export default{
             transactionVendor:'',
             transactionPaymentMethod:'',
             transactionData:[],
-            expandedCategory: null
+            expandedCategory: null,
+            showConfirmModal: false,  // For controlling modal visibility
+            selectedTransactionId: null,
         };
+    },
+    components: {
+        ConfirmationModal
     },
     mounted(){
         const currentUser = auth.currentUser;
@@ -250,7 +259,27 @@ export default{
         toggleTransactionList(category){
             this.expandedCategory = (this.expandedCategory === category) ? null : category;
             console.log(this.expandedCategory)
-        }
+        },
+        promptDelete(transactionId) {
+        this.selectedTransactionId = transactionId;
+        this.showConfirmModal = true;
+    },
+    deleteTransaction() {
+        if (!this.selectedTransactionId) return;
+        const currentUser = auth.currentUser;
+        const transactionRef = ref(db, `plannedpayments/${currentUser.uid}/${this.selectedTransactionId}`);
+        remove(transactionRef)
+            .then(() => {
+                console.log('Transaction deleted successfully');
+                this.showConfirmModal = false; // Hide the modal
+            })
+            .catch(error => {
+                console.error('Error deleting transaction:', error);
+            });
+    },
+    cancelDelete() {
+        this.showConfirmModal = false; // Hide the modal without deleting
+    },
     }
 }
 </script>
