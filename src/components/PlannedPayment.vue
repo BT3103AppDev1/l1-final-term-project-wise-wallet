@@ -133,7 +133,7 @@
                             <p>Frequency of Payment: <span class="transaction-date">{{ transaction.transactionFrequency }}</span></p>
                             <p>Payment Method: <span class="transaction-date">{{ transaction.transactionPaymentMethod }}</span></p>
                             <p>Vendor: <span class="transaction-date">{{ transaction.transactionVendor }}</span></p>
-                            <button @click="promptDelete(transaction.id)">Delete</button>
+                            <button @click="promptDelete(transaction.transactionId)">Delete</button>
                         </div>
                     </div>
                 </div>
@@ -144,7 +144,7 @@
 </template>
 <script>
 import {auth, db} from '@/assets/firebase.js';
-import {ref, push, onValue} from 'firebase/database';
+import {ref, push, onValue, remove, update} from 'firebase/database';
 import ConfirmationModal from '@/components/ConfirmationModal.vue'; 
 
 export default{
@@ -226,11 +226,25 @@ export default{
             };
             // Adding a new transaction
             const userTransactionsRef = ref(db, `plannedpayments/${currentUser.uid}`);
-            push(userTransactionsRef, transactionData).then((data) => {
-                alert('New planned payments saved successfully');
-            }).catch((error) => {
-                console.error('Error saving planned payments:', error);
-            });
+            push(userTransactionsRef, transactionData)
+                .then((newTransactionRef) => {
+                    const transactionId = newTransactionRef.key; // Get the ID of the newly added transaction
+                    console.log('New planned payments saved successfully with ID:', transactionId);
+                    // Update the transaction data with the transaction ID
+                    update(newTransactionRef, { transactionId: transactionId })
+                        .then(() => {
+                            console.log('Transaction ID added to transaction data');
+                            alert('New planned payments saved successfully');
+                        })
+                        .catch((error) => {
+                            console.error('Error adding transaction ID to transaction data:', error);
+                            alert('Error saving planned payments');
+                        });
+                })
+                .catch((error) => {
+                    console.error('Error saving planned payments:', error);
+                    alert('Error saving planned payments');
+                });
             this.transactionAmount = '';
             this.transactionCategory = '';
             this.transactionDate = '';
@@ -261,6 +275,7 @@ export default{
             console.log(this.expandedCategory)
         },
         promptDelete(transactionId) {
+        console.log(transactionId)
         this.selectedTransactionId = transactionId;
         this.showConfirmModal = true;
     },
