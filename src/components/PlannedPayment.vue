@@ -106,11 +106,10 @@
                   <input type="text" v-model="transactionVendor" required>
                 </div>
               </div>
-              <div v-if="isInEditMode" class="deleteButton"> 
-              <button type="button" @click="deleteTransaction(selectedTransaction)">Delete</button> </div>
               <!-- Submit Button -->
               <div class="saveButton">
                 <button type ="submit">Submit</button>
+                <button type="button" @click="cancelEdit">Cancel</button> 
               </div>
               
             </form>
@@ -134,6 +133,7 @@
                             <p>Payment Method: <span class="transaction-date">{{ transaction.transactionPaymentMethod }}</span></p>
                             <p>Vendor: <span class="transaction-date">{{ transaction.transactionVendor }}</span></p>
                             <button @click="promptDelete(transaction.transactionId)">Delete</button>
+                            <button @click="openFormForEdit(transaction)">Edit</button>
                         </div>
                     </div>
                 </div>
@@ -141,6 +141,7 @@
         </div>
     </div>
     <ConfirmationModal :isVisible="showConfirmModal" message="Are you sure you want to delete this transaction?" @confirm="deleteTransaction" @cancel="cancelDelete"/>
+
 </template>
 <script>
 import {auth, db} from '@/assets/firebase.js';
@@ -162,10 +163,12 @@ export default{
             expandedCategory: null,
             showConfirmModal: false,  // For controlling modal visibility
             selectedTransactionId: null,
+            monthlyPlannedPayments: 0,
+            isInEditMode: false
         };
     },
     components: {
-        ConfirmationModal
+        ConfirmationModal,
     },
     mounted(){
         const currentUser = auth.currentUser;
@@ -193,7 +196,11 @@ export default{
             });
             console.log(grouped)
             return grouped;
-        }
+        },
+        totalMonthlyAmount() {
+            this.monthlyPlannedPayments = getTotalAmountWithoutCurrencyCalc()
+            return this.monthlyPlannedPayments;
+        },
     },
     methods:{
         toggleForm(){
@@ -213,28 +220,43 @@ export default{
             return totalAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
         },
         saveTransaction() {
-            const currentUser = auth.currentUser;
-            // Structuring transaction data for reuse in both new and update operations
-            const transactionData = {
-                transactionAmount: this.transactionAmount,
-                transactionCategory: this.transactionCategory,
-                transactionDate: this.transactionDate,
-                transactionDescription: this.transactionDescription,
-                transactionFrequency:this.transactionFrequency,
-                transactionVendor: this.transactionVendor,
-                transactionPaymentMethod: this.transactionPaymentMethod
-            };
+        const currentUser = auth.currentUser;
+        const userTransactionsRef = ref(db, `plannedpayments/${currentUser.uid}`);
+
+        // Structuring transaction data for reuse in both new and update operations
+        const transactionData = {
+            transactionAmount: this.transactionAmount,
+            transactionCategory: this.transactionCategory,
+            transactionDate: this.transactionDate,
+            transactionDescription: this.transactionDescription,
+            transactionFrequency: this.transactionFrequency,
+            transactionVendor: this.transactionVendor,
+            transactionPaymentMethod: this.transactionPaymentMethod
+        };
+
+        if (this.isInEditMode) {
+            // Update the existing transaction
+            const updateRef = ref(db, `plannedpayments/${currentUser.uid}/${this.selectedTransactionId}`);
+            update(updateRef, transactionData)
+                .then(() => {
+                    console.log('Transaction updated successfully');
+                    alert('Transaction updated successfully');
+                    this.resetForm();
+                })
+                .catch((error) => {
+                    console.error('Error updating transaction:', error);
+                    alert('Error updating transaction');
+                });
+        } else {
             // Adding a new transaction
-            const userTransactionsRef = ref(db, `plannedpayments/${currentUser.uid}`);
             push(userTransactionsRef, transactionData)
                 .then((newTransactionRef) => {
-                    const transactionId = newTransactionRef.key; // Get the ID of the newly added transaction
-                    console.log('New planned payments saved successfully with ID:', transactionId);
-                    // Update the transaction data with the transaction ID
+                    const transactionId = newTransactionRef.key;
                     update(newTransactionRef, { transactionId: transactionId })
                         .then(() => {
-                            console.log('Transaction ID added to transaction data');
+                            console.log('New planned payments saved successfully with ID:', transactionId);
                             alert('New planned payments saved successfully');
+                            this.resetForm();
                         })
                         .catch((error) => {
                             console.error('Error adding transaction ID to transaction data:', error);
@@ -245,15 +267,8 @@ export default{
                     console.error('Error saving planned payments:', error);
                     alert('Error saving planned payments');
                 });
-            this.transactionAmount = '';
-            this.transactionCategory = '';
-            this.transactionDate = '';
-            this.transactionDescription = '';
-            this.transactionFrequency ='';
-            this.transactionVendor = '';
-            this.transactionPaymentMethod = '';
-            this.showTransactionForm = !this.showTransactionForm;
-        },
+        }
+    },
         getIconClass(category){
             const iconClasses = {
                 'Utilities':'bx bx-shower',
@@ -294,6 +309,35 @@ export default{
     },
     cancelDelete() {
         this.showConfirmModal = false; // Hide the modal without deleting
+    },
+    openFormForEdit(transaction) {
+        this.isInEditMode = true;
+        this.showTransactionForm = true;
+        this.transactionAmount = transaction.transactionAmount;
+        this.transactionCategory = transaction.transactionCategory;
+        this.transactionDate = transaction.transactionDate;
+        this.transactionDescription = transaction.transactionDescription;
+        this.transactionFrequency = transaction.transactionFrequency;
+        this.transactionVendor = transaction.transactionVendor;
+        this.transactionPaymentMethod = transaction.transactionPaymentMethod;
+        this.selectedTransactionId = transaction.transactionId;
+        console.log(this.selectedTransactionId)
+    },
+    resetForm() {
+        // Reset form fields
+        this.transactionAmount = '';
+        this.transactionCategory = '';
+        this.transactionDate = '';
+        this.transactionDescription = '';
+        this.transactionFrequency ='';
+        this.transactionVendor = '';
+        this.transactionPaymentMethod = '';
+        this.showTransactionForm = false;
+        this.isInEditMode = false;
+        this.selectedTransactionId = null;
+    },
+    cancelEdit() {
+        this.resetForm(); 
     },
     }
 }

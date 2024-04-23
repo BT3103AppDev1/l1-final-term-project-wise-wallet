@@ -25,6 +25,21 @@
             </router-link>
         </div>
     </div >
+    <div class="content-container">
+    <div class="budget-tracker">
+        <div class="budget-header">
+            <span class="budget-title">Total Budget</span>
+        </div>
+        <div class="budget-details">
+            <span class="current-amount">{{ formattedCurrentAmount }}</span>/<span class="total-amount">{{ formattedSalary }}</span>
+        </div>
+        <div class="progress-bar-background">
+            <div class="progress-bar-foreground" :style="{ width: progressPercentage + '%' }"></div>
+        </div>
+        <div class="budget-warning" v-if="this.currentAmount > this.salary">
+            You have exceeded your budget!
+    </div>
+    </div>
     <div class="chart-container">
     <div class="pie-chart" v-if="isPieChartDataAvailable">
         <button @click="exportPieChart('csv')">Export CSV</button>
@@ -41,6 +56,8 @@
     <button @click="setViewMode('yearly')">Show Yearly Transactions</button>
     </div>
 </div>
+</div>
+
 <div class='historical_compare'>
         <canvas id="hist_Chart"></canvas>
     </div>
@@ -81,7 +98,8 @@ export default {
             labels: [],
             datasets: []},           
             lineChartOptions: {}, // Options for the line chart
-            viewMode: 'daily'
+            viewMode: 'daily',
+            currentAmount: 0 
         };
     },
     computed: {
@@ -91,6 +109,27 @@ export default {
     isLineChartDataAvailable() {
         return this.lineChartData.datasets.some(dataset => dataset.data.length > 0 && dataset.data.some(data => data > 0));
     },
+    currentAmount() {
+        // Sum of investment, payment, and savings
+        return this.investment + this.payment + this.savings;
+    },
+    progressPercentage() {
+        if (this.currentAmount > this.salary) {
+            return 100
+        }
+        if (this.salary > 0) {
+            return (this.currentAmount / this.salary * 100).toFixed(2);
+        }
+        return 0;
+    },
+    formattedCurrentAmount() {
+        this.currentAmount = this.investment + this.payment + this.savings
+        return this.currentAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    },
+    formattedSalary() {
+        return this.salary.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    },
+
     chartData() {
       return {
         labels: ['Investment', 'Payment', 'Savings', 'Remaining Budget'],
@@ -460,7 +499,8 @@ export default {
 }
 .chart-container {
     display: flex;
-    height: 400px; /* Adjust the height as needed */
+    height: 500px; /* Adjust the height as needed */
+    width: 80%;
 }
 .pie-chart,
 .line-chart {
@@ -516,8 +556,96 @@ export default {
     position: relative;
   width: 40%;
   height: 400px; /* Adjust height as needed */
-  margin-top: 20px;
-  margin:1rem;
+  margin-top: px;
+  margin:5rem;
 }
+
+.budget-tracker {
+  font-family: 'Arial', sans-serif;
+  max-width: 300px; /* Adjust to your preference */
+  font-size: 2rem;
+  margin:2rem
+}
+
+.budget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.budget-title {
+  font-weight: bold;
+  color: #333;
+}
+
+.edit-btn {
+  background: none;
+  border: none;
+  color: #7f8c8d;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.edit-btn:hover {
+  color: #2c3e50;
+}
+
+.budget-details {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: baseline;
+}
+
+.current-amount {
+  font-weight: bold;
+  color: #8e44ad;
+}
+
+.total-amount {
+  font-weight: normal;
+  color: #95a5a6;
+}
+
+.progress-bar-background {
+  width: 100%;
+  background: #ecf0f1;
+  border-radius: 1rem;
+  height: 1rem;
+}
+
+.progress-bar-foreground {
+    transition: width 0.5s ease;
+    height: 1rem;
+    background: linear-gradient(to right, #3498db, #9b59b6);
+    border-radius: 1rem;
+}
+
+.content-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+}
+.charts-container {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+}
+.pie-chart,
+.line-chart {
+    flex: 1; /* Each chart container will take up equal space */
+    padding: 1rem; /* This adds some space around the charts */
+}
+
+.budget-warning {
+    color: red;
+    font-weight: bold;
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 24px;
+}
+
 
 </style>
