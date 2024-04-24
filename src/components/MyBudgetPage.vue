@@ -50,10 +50,11 @@
     <button @click="setViewMode('monthly')">Show Monthly Transactions</button>
     <button @click="setViewMode('yearly')">Show Yearly Transactions</button>
      </div>
-    <div class='historical_compare'>
-    <button @click="exportBarChartToCSV">Export to CSV</button>
-    <button @click="exportBarChartToPDF">Export to PDF</button>
-    <canvas id="hist_Chart"></canvas> </div>
+     <div class="historical_compare">
+    <button @click="exportBarChartToCSV" v-if="isHistoricalDataAvailable">Export to CSV</button>
+    <button @click="exportBarChartToPDF" v-if="isHistoricalDataAvailable">Export to PDF</button>
+    <canvas id="hist_Chart"></canvas>
+</div>
 </div>
     </div>
 </div>
@@ -110,8 +111,8 @@ export default {
         };
     },
     computed: {
-    isPieChartDataAvailable() {
-        return this.chartData.datasets.some(dataset => dataset.data.length > 0 && dataset.data.some(data => data > 0));
+    isHistoricalDataAvailable() {
+        return this.historicalData && this.historicalData.length > 0;
     },
     isLineChartDataAvailable() {
         return this.lineChartData.datasets.some(dataset => dataset.data.length > 0 && dataset.data.some(data => data > 0));
