@@ -131,7 +131,7 @@
       <div class="filter-section">
           <h2>Filter By: </h2> 
           <button :class="{'filter-button': true, 'active': activeFilterPaymentMethod === 'Bank Transfer'}"
-            @click="setFilterPaymentMethod('Bank Transfer')">Bank Transfer</button>
+        @click="setFilterPaymentMethod('Bank Transfer')"> Bank Transfer </button>
     <button :class="{'filter-button': true, 'active': activeFilterPaymentMethod === 'Credit Card'}"
             @click="setFilterPaymentMethod('Credit Card')">Credit Card</button>
     <button :class="{'filter-button': true, 'active': activeFilterPaymentMethod === 'Debit Card'}"
@@ -222,7 +222,9 @@ data() {
         'Charity':'bx bx-donate-heart',
         'Other':'bx bx-square-rounded'
             // Add more mappings for other transaction categories as needed
-        }
+        },
+        activeFilterPaymentMethod: '', // Stores the active filter state for payment methods
+        activeSortBy: '',              // Stores the active sort state
   };
 },
 mounted(){
@@ -255,11 +257,13 @@ methods:{
     if (this.transactionData) {
         const currentDate = new Date(selectedDate);
         const currentMonth = currentDate.getMonth() + 1;
+        const currentYear = currentDate.getFullYear();
 
         const currentMonthExpenses = this.transactionData.filter(transaction => {
             const transactionDate = new Date(transaction.transactionDate);
             return (
                 transactionDate.getMonth() + 1 === currentMonth &&
+                transactionDate.getFullYear() === currentYear &&
                 transaction.transactionCategory !== 'Salary' &&
                 transaction.transactionCategory !== 'Income'
             );
@@ -272,29 +276,32 @@ methods:{
     } else {
         console.error("Transaction data is not available.");
     }
-  },
-  calculateTotalIncomeForMonth(selectedDate) {
-        if (this.transactionData) {
-            const currentDate = new Date(selectedDate);
-            const currentMonth = currentDate.getMonth() + 1;
+},
 
-            const currentMonthIncome = this.transactionData.filter(transaction => {
-                const transactionDate = new Date(transaction.transactionDate);
-                return (
-                    transactionDate.getMonth() + 1 === currentMonth &&
-                    (transaction.transactionCategory === 'Income' || transaction.transactionCategory === 'Salary')
-                );
-            });
+calculateTotalIncomeForMonth(selectedDate) {
+    if (this.transactionData) {
+        const currentDate = new Date(selectedDate);
+        const currentMonth = currentDate.getMonth() + 1;
+        const currentYear = currentDate.getFullYear();
 
-            // Calculate total income for the current month
-            const totalIncome = currentMonthIncome.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
+        const currentMonthIncome = this.transactionData.filter(transaction => {
+            const transactionDate = new Date(transaction.transactionDate);
+            return (
+                transactionDate.getMonth() + 1 === currentMonth &&
+                transactionDate.getFullYear() === currentYear &&
+                (transaction.transactionCategory === 'Income' || transaction.transactionCategory === 'Salary')
+            );
+        });
 
-            // Ensure totalIncome is positive and formatted to two decimal places
-            this.totalIncomeForMonth = Math.abs(totalIncome).toFixed(2);
-        } else {
-            console.error("Transaction data is not available.");
-        }
-    },
+        // Calculate total income for the current month
+        const totalIncome = currentMonthIncome.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
+
+        // Ensure totalIncome is positive and formatted to two decimal places
+        this.totalIncomeForMonth = Math.abs(totalIncome).toFixed(2);
+    } else {
+        console.error("Transaction data is not available.");
+    }
+},
   toggleTransactionForm(){
     this.showTransactionForm = !this.showTransactionForm;
   },
@@ -453,11 +460,13 @@ methods:{
       this.transactionPaymentMethod = '';
     },
     resetFilters() {
-    this.filterPaymentMethod = '';
-    this.filterCategory = '';
-    this.filterSortBy = '';
-    this.searchTerm = '';
-    }
+        this.filterPaymentMethod = '';  // Clear filter for payment method
+        this.filterCategory = '';       // Clear category filter
+        this.filterSortBy = '';         // Clear sorting method
+        this.searchTerm = '';           // Clear search term
+        this.activeFilterPaymentMethod = '';  // Clear active UI state for payment method filter
+        this.activeSortBy = '';         // Clear active UI state for sort method
+    },
       },
     computed: {
       filteredTodayTransactions() {
