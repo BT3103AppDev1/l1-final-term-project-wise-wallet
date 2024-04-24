@@ -39,14 +39,7 @@
         <div class="budget-warning" v-if="this.currentAmount > this.salary">
             You have exceeded your budget!
     </div>
-    </div>
     <div class="chart-container">
-    <div class="pie-chart" v-if="isPieChartDataAvailable">
-        <button @click="exportPieChart('csv')">Export CSV</button>
-        <button @click="exportPieChart('pdf')">Export PDF</button>
-        <Pie :data="chartData" :options="chartOptions" />
-
-    </div>
     <div class="line-chart" v-if="isLineChartDataAvailable">
     <button @click="exportLineChart('csv')">Export CSV</button>
     <button @click="exportLineChart('pdf')">Export PDF</button>
@@ -54,16 +47,24 @@
     <button @click="setViewMode('daily')">Show Daily Transactions</button>
     <button @click="setViewMode('monthly')">Show Monthly Transactions</button>
     <button @click="setViewMode('yearly')">Show Yearly Transactions</button>
-    </div>
-</div>
-</div>
-
-<div class='historical_compare'>
+     </div>
+    <div class='historical_compare'>
     <button @click="exportBarChartToCSV">Export to CSV</button>
     <button @click="exportBarChartToPDF">Export to PDF</button>
-        <canvas id="hist_Chart"></canvas>
-
+    <canvas id="hist_Chart"></canvas> </div>
+</div>
     </div>
+</div>
+
+    <!-- <div class="pie-chart" v-if="isPieChartDataAvailable">
+        <button @click="exportPieChart('csv')">Export CSV</button>
+        <button @click="exportPieChart('pdf')">Export PDF</button>
+        <Pie :data="chartData" :options="chartOptions" />
+    </div> -->
+
+
+
+
     </div>
 </template>
 
@@ -154,9 +155,10 @@ export default {
         }]
       };
     },
-    chartOptions() {
+    linechartoptions() {
       return {
         responsive: true,
+        maintainAspectRatio: false, // Set this to false to allow custom dimensions
         plugins: {
           datalabels: {
             color: '#fff',
@@ -344,7 +346,6 @@ export default {
             },
             options: {
             responsive: true,
-            maintainAspectRatio: false,
             scales: {
                 x: {
                 stacked: false,
@@ -532,10 +533,8 @@ exportPDF(chartData, title, filename) {
 
 .chart-container {
     display: flex;
-    align-items: flex-start; /* Align the charts to the top */
-    gap: 20px; /* Add space between the pie-chart and line-chart */
-    justify-content: space-between; /* Add space between the children */
-
+    flex-direction: row;
+    padding: auto
 }
 
 
@@ -607,17 +606,18 @@ exportPDF(chartData, title, filename) {
 }
 
 .historical_compare{
-  width: 40%;
-  height: 400px; /* Adjust height as needed */
+  width: 70%;
+  height: 380px; /* Adjust height as needed */
   margin-top: px;
   margin:5rem;
 }
 
-.budget-tracker {
-  font-family: 'Arial', sans-serif;
-  font-size: 2rem;
-  flex: 0.5; /* Take as much space as needed */
+.line-chart {
+    padding: 1rem;
+    box-sizing: border-box; /* Ensures that padding is included in the width */
+    width: 40vw; /* Takes the full viewport width */
 }
+
 
 .budget-header {
   display: flex;
@@ -677,20 +677,27 @@ exportPDF(chartData, title, filename) {
 
 .content-container {
     display: flex;
-    padding: 20px;
+    flex-direction: row; /* Change this to row to align children side by side */
+    align-items: flex-start; /* Aligns children to the start of the cross axis */
+    justify-content: space-between; /* This will place space between the children if there's extra space */
+    padding: 0;
+    margin: 0;
+}
+.line-chart, .historical_compare {
+    flex-grow: 1; /* Allows the chart to grow and fill the space */
+    /* Other properties like padding, margin, etc. */
+    margin: 1rem; /* Adjust margin as needed to create space between the charts */
 }
 
-.charts-container {
-    display: flex;
-    flex-direction: column;
-    width: 80%;
-}
-.pie-chart,
-.line-chart {
-    flex: 1; /* Each chart container will take up equal space */
-    padding: 1rem; /* This adds some space around the charts */
-    flex-basis: 45%; /* Both charts will occupy 45% of the container's width */
 
+
+
+.budget-tracker {
+  font-family: 'Arial', sans-serif;
+  padding: 1rem;
+  height: 30vh; /* Adjusted height here */
+  width: 70vw; /* Takes the full viewport width */
+  margin-bottom: 1.5rem
 }
 
 .budget-warning {
