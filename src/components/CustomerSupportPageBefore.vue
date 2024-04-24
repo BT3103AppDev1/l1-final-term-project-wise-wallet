@@ -12,7 +12,7 @@
             <div class="faqArticles">
                 <h1>FEATURED ARTICLES</h1>
                 <div class="articlesContainer">
-                    <!-- <div class="articles">
+                    <div class="articles">
                         <h2>About WiseWallet</h2>
                         <p>Account Basics</p>
                     </div>
@@ -27,7 +27,7 @@
                     <div class="articles">
                         <h2>Contact WiseWallet Support</h2>
                         <p>About WiseWallet</p>
-                    </div> -->
+                    </div>
                     <!-- Display filtered articles -->
                     <div class="articles" v-for="article in filteredArticles" :key="article.title">
                         <h2>{{ article.title }}</h2>
