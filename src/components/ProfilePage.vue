@@ -20,11 +20,13 @@
             <div class="profileDetails">
                 <div class="profilePic">
                     <div class="picBox">
-                        <i class='bx bx-user' ></i>
+                        <img v-if="profilePhoto" :src="profilePhoto" alt="Profile Photo" class="profile-photo"/>
+                        <i v-else class='bx bx-user' ></i>
                     </div>
                     <div class="input-box1">
                         <label for="profile-picture-upload">Upload Profile Picture</label>
-                        <input type="file" id="profile-picture-upload" accept="image/*">
+                        <input type="file" id="profile-picture-upload" accept="image/*" @change="handlePhotoUpload">
+                        <button v-if="profilePhoto" @click="clearPhoto">Remove Photo</button>
                     </div>
                     <div class="emailIcon">
                         <i class='bx bxs-envelope' ></i>
@@ -117,7 +119,8 @@ export default {
         selectedPhone: '',
         selectedOccupation: '',
         countries:[],
-        selectedIncomeRange: ''
+        selectedIncomeRange: '',
+        profilePhoto: null
     };
   },
   mounted() {
@@ -144,7 +147,8 @@ export default {
           this.selectedPostalCode = userData.postalCode;
           this.selectedPhone = userData.phone;
           this.selectedOccupation = userData.occupation;
-          this.selectedIncomeRange = userData.incomeRange;          
+          this.selectedIncomeRange = userData.incomeRange;
+          this.profilePhoto = userData.profilePhoto;       
         // Populate other data properties if needed
         }
       })
@@ -169,18 +173,34 @@ export default {
             return [];
         }
     },
-    savePersonalInfo(){
-        const currentUser = auth.currentUser;
-        const firstName = this.firstName;
-        const lastName = this.lastName ;
-        const selectedGender = this.selectedGender ;
-        const selectedCountry = this.selectedCountry ;
-        const selectedCity = this.selectedCity ;
-        const selectedStreet = this.selectedStreet ;
-        const selectedPostalCode = this.selectedPostalCode ;
-        const selectedPhone = this.selectedPhone ;
-        const selectedOccupation = this.selectedOccupation ;
-        const selectedIncomeRange = this.selectedIncomeRange ;
+    handlePhotoUpload(event) {
+      const file = event.target.files[0];
+      if (file && (file.type === "image/jpeg" || file.type === "image/png")) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.profilePhoto = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    },
+    clearPhoto() {
+      this.profilePhoto = null;
+    },
+    savePersonalInfo() {
+      const currentUser = auth.currentUser;
+      const updates = {
+        firstName: this.firstName,
+        lastName: this.lastName,
+        gender: this.selectedGender,
+        country: this.selectedCountry,
+        city: this.selectedCity,
+        street: this.selectedStreet,
+        postalCode: this.selectedPostalCode,
+        phone: this.selectedPhone,
+        occupation: this.selectedOccupation,
+        incomeRange: this.selectedIncomeRange,
+        profilePhoto: this.profilePhoto // Save the profile photo URL
+      };
 
         updateProfile(currentUser, {
             displayName: firstName + ' ' + lastName,
@@ -371,4 +391,20 @@ border-color: #9b59b6;
   .saveButton button:hover {
     background:linear-gradient(-135deg, #71b7e6, #9b59b6)
   }
+
+.picBox {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 400px; /* Adjust the height */
+    width: 400px; /* Adjust the width */
+    overflow: hidden;
+    border: 1px solid #ccc;
+}
+.profile-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Cover the container */
+}
 </style>
