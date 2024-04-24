@@ -8,10 +8,10 @@
             <i class = "bx bx-x" id="menuClose"></i>
         </label>
         <nav class="navItems">
-            <a href="#">How it works</a>
+            <router-link to ='/productOfferings_' class="router-link">How it works</router-link>
             <router-link to ='/customer-support-before' class="router-link">FAQ</router-link>
             <a href="#">Testimonials</a>
-            <a href="#">About us</a>
+            <router-link to ='/aboutWiseWallet_' class="router-link">About Us</router-link>
             <router-link to ='/login' class="router-link">Login</router-link>
             <a class="getStarted_btn" id="getStarted" @click="navigateToSignUp" >Get started</a>
         </nav>

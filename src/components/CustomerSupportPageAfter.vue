@@ -12,21 +12,27 @@
             <div class="faqArticles">
                 <h1>FEATURED ARTICLES</h1>
                 <div class="articlesContainer">
+                    <router-link to="/aboutWiseWallet" class="router-link" style="text-decoration: none; color: inherit;">
                     <div class="articles">
                         <h2>About WiseWallet</h2>
-                        <p>Account Basics</p>
+                        <p>About WiseWallet</p>
                     </div>
+                    </router-link>
                     <div class="articles">
+                        <router-link to="/billingfaq" class="router-link" style="text-decoration: none; color: inherit;">
                         <h2>How do I cancel my WiseWallet Subscription</h2>
                         <p>Billing & Subscription</p>
+                        </router-link>
                     </div>
+                    <router-link to="/productOfferings" class="router-link" style="text-decoration: none; color: inherit;">
                     <div class="articles">
                         <h2>WiseWallet's product offerings</h2>
-                        <p>About WiseWallet</p>
+                        <p>Account Basics</p>
                     </div>
+                    </router-link>
                     <div class="articles">
                         <h2>Contact WiseWallet Support</h2>
-                        <p>About WiseWallet</p>
+                        <p>Customer Support</p>
                     </div> 
                     <!-- Display filtered articles -->
                     <div class="articles" v-for="article in filteredArticles" :key="article.title">
@@ -473,5 +479,10 @@ export default {
 
 .articles {
     padding: 2.5rem;
+}
+
+.articlesContainer :hover{
+    color:#4158D0;
+    cursor: pointer;
 }
 </style>
