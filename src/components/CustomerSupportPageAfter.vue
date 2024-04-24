@@ -12,22 +12,28 @@
             <div class="faqArticles">
                 <h1>FEATURED ARTICLES</h1>
                 <div class="articlesContainer">
-                    <!-- <div class="articles">
-                        <h2>About WiseWallet</h2>
-                        <p>Account Basics</p>
-                    </div>
+                    <router-link to="/aboutWiseWallet" class="router-link" style="text-decoration: none; color: inherit;">
                     <div class="articles">
+                        <h2>About WiseWallet</h2>
+                        <p>About WiseWallet</p>
+                    </div>
+                    </router-link>
+                    <div class="articles">
+                        <router-link to="/billingfaq" class="router-link" style="text-decoration: none; color: inherit;">
                         <h2>How do I cancel my WiseWallet Subscription</h2>
                         <p>Billing & Subscription</p>
+                        </router-link>
                     </div>
+                    <router-link to="/productOfferings" class="router-link" style="text-decoration: none; color: inherit;">
                     <div class="articles">
                         <h2>WiseWallet's product offerings</h2>
-                        <p>About WiseWallet</p>
+                        <p>Account Basics</p>
                     </div>
+                    </router-link>
                     <div class="articles">
                         <h2>Contact WiseWallet Support</h2>
-                        <p>About WiseWallet</p>
-                    </div> -->
+                        <p>Customer Support</p>
+                    </div> 
                     <!-- Display filtered articles -->
                     <div class="articles" v-for="article in filteredArticles" :key="article.title">
                         <h2>{{ article.title }}</h2>
@@ -312,13 +318,12 @@ export default {
 }
 
 .customerSupportContainer {
-    display: flex;
-    flex-direction: column;
-    padding-right: 20px; /* Right padding to maintain consistent spacing around the content */
-    margin-left: 300px; /* Sidebar width */
-    margin-top: 90px; /* Navbar height */
-    min-height: calc(100vh - 90px); /* Height accounting for navbar */
-    width: calc(100vw - 300px); /* Width accounting for sidebar */
+    height:100vh;
+    background: white;
+    flex:1;
+    margin-left:300px;
+    margin-top:80px;
+    position:relative;
 }
 
 .supportTeam {
@@ -474,5 +479,10 @@ export default {
 
 .articles {
     padding: 2.5rem;
+}
+
+.articlesContainer :hover{
+    color:#4158D0;
+    cursor: pointer;
 }
 </style>

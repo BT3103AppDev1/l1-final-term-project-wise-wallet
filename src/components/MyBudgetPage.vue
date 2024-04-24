@@ -25,6 +25,21 @@
             </router-link>
         </div>
     </div >
+    <div class="content-container">
+    <div class="budget-tracker">
+        <div class="budget-header">
+            <span class="budget-title">Total Budget</span>
+        </div>
+        <div class="budget-details">
+            <span class="current-amount">{{ formattedCurrentAmount }}</span>/<span class="total-amount">{{ formattedSalary }}</span>
+        </div>
+        <div class="progress-bar-background">
+            <div class="progress-bar-foreground" :style="{ width: progressPercentage + '%' }"></div>
+        </div>
+        <div class="budget-warning" v-if="this.currentAmount > this.salary">
+            You have exceeded your budget!
+    </div>
+    </div>
     <div class="chart-container">
     <div class="pie-chart" v-if="isPieChartDataAvailable">
         <button @click="exportPieChart('csv')">Export CSV</button>
@@ -41,8 +56,13 @@
     <button @click="setViewMode('yearly')">Show Yearly Transactions</button>
     </div>
 </div>
+</div>
+
 <div class='historical_compare'>
+    <button @click="exportBarChartToCSV">Export to CSV</button>
+    <button @click="exportBarChartToPDF">Export to PDF</button>
         <canvas id="hist_Chart"></canvas>
+
     </div>
     </div>
 </template>
@@ -81,16 +101,38 @@ export default {
             labels: [],
             datasets: []},           
             lineChartOptions: {}, // Options for the line chart
-            viewMode: 'daily'
+            viewMode: 'daily',
+            currentAmount: 0 
         };
     },
     computed: {
-        isPieChartDataAvailable() {
+    isPieChartDataAvailable() {
         return this.chartData.datasets.some(dataset => dataset.data.length > 0 && dataset.data.some(data => data > 0));
     },
     isLineChartDataAvailable() {
         return this.lineChartData.datasets.some(dataset => dataset.data.length > 0 && dataset.data.some(data => data > 0));
     },
+    currentAmount() {
+        // Sum of investment, payment, and savings
+        return this.investment + this.payment + this.savings;
+    },
+    progressPercentage() {
+        if (this.currentAmount > this.salary) {
+            return 100
+        }
+        if (this.salary > 0) {
+            return (this.currentAmount / this.salary * 100).toFixed(2);
+        }
+        return 0;
+    },
+    formattedCurrentAmount() {
+        this.currentAmount = this.investment + this.payment + this.savings
+        return this.currentAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    },
+    formattedSalary() {
+        return this.salary.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    },
+
     chartData() {
       return {
         labels: ['Investment', 'Payment', 'Savings', 'Remaining Budget'],
@@ -352,6 +394,36 @@ export default {
         }
     },
 
+
+    exportBarChartToCSV() {
+        const labels = this.barChart.data.labels;
+        const incomeData = this.barChart.data.datasets[0].data; // Assuming dataset[0] is Income
+        const expensesData = this.barChart.data.datasets[1].data; // Assuming dataset[1] is Expenses
+        const rows = labels.map((label, index) => [label, incomeData[index], expensesData[index]]);
+
+        this.exportCSV(rows, ['Month', 'Income', 'Expenses'], 'monthly_finances.csv');
+    },
+
+    exportBarChartToPDF() {
+        const doc = new jsPDF();
+        doc.text('Monthly Income vs Expenses', 14, 16);
+        const headers = [['Month', 'Income', 'Expenses']];
+        const body = this.barChart.data.labels.map((label, index) => [
+            label,
+            this.barChart.data.datasets[0].data[index],
+            this.barChart.data.datasets[1].data[index],
+        ]);
+
+        doc.autoTable({
+            head: headers,
+            body: body,
+            startY: 20,
+            theme: 'striped'
+        });
+
+        doc.save('monthly_finances.pdf');
+    },
+
     exportCSV(data, columns, filename) {
     // Ensure each row of data is an array; if not, wrap it in an array
     let csvContent = columns.join(",") + "\n" + data.map(e => Array.isArray(e) ? e.join(",") : e).join("\n");
@@ -359,7 +431,7 @@ export default {
     saveAs(blob, filename);
 },
 
-    exportPDF(chartData, title, filename) {
+exportPDF(chartData, title, filename) {
         const doc = new jsPDF();
         doc.text(title, 20, 20);
         let body = [];
@@ -378,8 +450,7 @@ export default {
         });
         doc.save(filename);
     }
-
-    }
+}
 
 };
 
@@ -458,15 +529,15 @@ export default {
     color:white;
     border-radius:20px;
 }
+
 .chart-container {
     display: flex;
-    height: 400px; /* Adjust the height as needed */
+    align-items: flex-start; /* Align the charts to the top */
+    gap: 20px; /* Add space between the pie-chart and line-chart */
+    justify-content: space-between; /* Add space between the children */
+
 }
-.pie-chart,
-.line-chart {
-    flex: 1; /* Each chart container will take up equal space */
-    padding: 1rem; /* This adds some space around the charts */
-}
+
 
 .line-chart button {
     margin: 10px;
@@ -482,6 +553,18 @@ export default {
 
 
 .pie-chart button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 12px;
+    color: white;
+    background-color: #4158D0;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.historical_compare button {
     margin: 10px;
     padding: 10px 20px;
     font-size: 12px;
@@ -512,12 +595,111 @@ export default {
     outline: none;
     box-shadow: 0 0 0 2px rgba(65, 88, 208, 0.5);
 }
+
+.historical_compare button:hover {
+    background-color: #293B8F;
+    transform: scale(1.05);
+}
+
+.historical_compare button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(65, 88, 208, 0.5);
+}
+
 .historical_compare{
-    position: relative;
   width: 40%;
   height: 400px; /* Adjust height as needed */
-  margin-top: 20px;
-  margin:1rem;
+  margin-top: px;
+  margin:5rem;
 }
+
+.budget-tracker {
+  font-family: 'Arial', sans-serif;
+  font-size: 2rem;
+  flex: 0.5; /* Take as much space as needed */
+}
+
+.budget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.budget-title {
+  font-weight: bold;
+  color: #333;
+}
+
+.edit-btn {
+  background: none;
+  border: none;
+  color: #7f8c8d;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.edit-btn:hover {
+  color: #2c3e50;
+}
+
+.budget-details {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: baseline;
+}
+
+.current-amount {
+  font-weight: bold;
+  color: #8e44ad;
+}
+
+.total-amount {
+  font-weight: normal;
+  color: #95a5a6;
+}
+
+.progress-bar-background {
+  width: 100%;
+  background: #ecf0f1;
+  border-radius: 1rem;
+  height: 1rem;
+}
+
+.progress-bar-foreground {
+    transition: width 0.5s ease;
+    height: 1rem;
+    background: linear-gradient(to right, #3498db, #9b59b6);
+    border-radius: 1rem;
+}
+
+.content-container {
+    display: flex;
+    padding: 20px;
+}
+
+.charts-container {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+}
+.pie-chart,
+.line-chart {
+    flex: 1; /* Each chart container will take up equal space */
+    padding: 1rem; /* This adds some space around the charts */
+    flex-basis: 45%; /* Both charts will occupy 45% of the container's width */
+
+}
+
+.budget-warning {
+    color: red;
+    font-weight: bold;
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 24px;
+}
+
 
 </style>

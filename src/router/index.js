@@ -5,6 +5,9 @@ import Login from '@/before-login/LoginPage.vue'
 import Registration from '@/before-login/RegistrationPage.vue'
 import resetPassword from '@/before-login/ForgetPassword.vue'
 import CustomerSupportBefore from '@/before-login/CustomerSupportBefore.vue'
+import aboutWiseWalletBefore from '@/before-login/AboutWiseWallet.vue'
+import cancelWiseWalletBefore from '@/before-login/CancelSubscription.vue'
+import productOfferingsBefore from '@/before-login/ProductOfferings.vue'
 
 import Dashboard from '@/after-login/Dashboard.vue'
 import profilePage from '@/after-login/ProfilePage.vue'
@@ -16,6 +19,9 @@ import ForumPage from '@/after-login/ForumPage.vue'
 import MyBudgetPage from '@/after-login/MyBudgetPage.vue'
 import CreatePostPage from '@/after-login/CreatePostPage.vue'
 import CustomerSupportAfter from '@/after-login/CustomerSupportAfter.vue'
+import aboutWiseWallet from '@/after-login/AboutWiseWallet.vue'
+import cancelWiseWallet from '@/after-login/CancelSubscription.vue'
+import productOfferings from '@/after-login/ProductOfferings.vue'
 
 const routes = [
 {
@@ -93,6 +99,36 @@ const routes = [
     path: '/customer-support-before',
     name: 'customer-support-before',
     component: CustomerSupportBefore
+},
+{
+    path: '/aboutWiseWallet',
+    name: 'about-wisewallet',
+    component: aboutWiseWallet
+},
+{
+    path: '/aboutWiseWallet_',
+    name: 'about-wisewallet-before',
+    component: aboutWiseWalletBefore
+},
+{
+    path: '/billingfaq',
+    name: 'cancel-wisewallet',
+    component: cancelWiseWallet
+},
+{
+    path: '/billingfaq_',
+    name: 'cancel-wisewallet-before',
+    component: cancelWiseWalletBefore
+},
+{
+    path: '/productOfferings',
+    name: 'product-offerings',
+    component: productOfferings
+},
+{
+    path: '/productOfferings_',
+    name: 'product-offerings-before',
+    component: productOfferingsBefore
 }
 ]
 const router = createRouter({
