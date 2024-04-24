@@ -2,7 +2,7 @@
 import aboutWiseWallet from '@/components/AboutWiseWalletBefore.vue'
 import NavBar from '@/components/NavigationBar.vue'
 export default{
-    name:'about-wisewallet',
+    name:'about-wisewallet-before',
     components:{
         NavBar,
         aboutWiseWallet

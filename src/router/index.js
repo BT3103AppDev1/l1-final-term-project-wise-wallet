@@ -107,7 +107,7 @@ const routes = [
 },
 {
     path: '/aboutWiseWallet_',
-    name: 'about-wisewallet',
+    name: 'about-wisewallet-before',
     component: aboutWiseWalletBefore
 },
 {
@@ -117,7 +117,7 @@ const routes = [
 },
 {
     path: '/billingfaq_',
-    name: 'cancel-wisewallet',
+    name: 'cancel-wisewallet-before',
     component: cancelWiseWalletBefore
 },
 {
@@ -127,7 +127,7 @@ const routes = [
 },
 {
     path: '/productOfferings_',
-    name: 'product-offerings',
+    name: 'product-offerings-before',
     component: productOfferingsBefore
 }
 ]
