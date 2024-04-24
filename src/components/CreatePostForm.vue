@@ -2,6 +2,7 @@
   <div class="create-post-form">
     <div class="title-upload-container">
       <input type="text" placeholder="Enter Blog Title" v-model="blogTitle" class="blog-title-input"/>
+      <p v-if="titleError" class="error-message">{{ titleError }}</p>
       <input type="text" placeholder="Enter Hashtags (e.g., #finance #budgeting)" v-model="hashtagsInput" class="hashtags-input"/>
       <button type="button" @click="clickUpload" class="upload-cover-photo-button">Upload Cover Photo</button>
       <input type="file" @change="handleCoverPhotoUpload" accept=".jpg, .jpeg, .png" class="cover-photo-input" ref="coverPhotoInput" style="display: none;"/>
@@ -11,6 +12,8 @@
       <button type="button" @click="clearImage" class="remove-cover-photo-button">Remove</button>
     </div>
     <div ref="quillEditor" class="quill-container"></div>
+    <p class="word-count">Word count: {{ wordCount }}/500</p>
+    <p v-if="contentError" class="error-message">{{ contentError }}</p>
     <button type="button" @click="publishPost" class="publish-btn">Publish Post</button>
     <p v-if="showSuccessMessage" class="success-message">{{ showSuccessMessage }}</p>
     <p v-if="showErrorMessage" class="error-message">{{ showErrorMessage }}</p>
@@ -34,8 +37,31 @@ export default {
       hashtagsInput: '',
       quill: null,
       showSuccessMessage: '',
-      showErrorMessage: ''
+      showErrorMessage: '',
+      titleError: '',
+      contentError: '',
+      wordCount: 0
     };
+  },
+  watch: {
+    blogTitle(newTitle) {
+      if (newTitle.length > 40) {
+        this.titleError = 'Title cannot exceed 40 characters.';
+        this.blogTitle = newTitle.slice(0, 40);
+      } else {
+        this.titleError = '';
+      }
+    },
+    blogContent(newContent) {
+      const wordCount = newContent.split(/\s+/).filter(Boolean).length;
+      if (wordCount > 500) {
+        this.contentError = 'Post content cannot exceed 500 words.';
+        const words = newContent.split(/\s+/);
+        this.blogContent = words.slice(0, 500).join(' ') + (words.length > 500 ? '...' : '');
+      } else {
+        this.contentError = '';
+      }
+    }
   },
   mounted() {
     this.quill = new Quill(this.$refs.quillEditor, {
@@ -43,6 +69,7 @@ export default {
     });
     this.quill.on('text-change', () => {
       this.blogContent = this.quill.root.innerHTML;
+      this.updateWordCount();
     });
   },
   methods: {
@@ -67,17 +94,36 @@ export default {
       this.coverPhotoFile = null;
       this.$refs.coverPhotoInput.value = '';
     },
+    updateWordCount() {
+      // Extract text content from HTML and count words
+      const textContent = this.quill.getText().trim();
+      this.wordCount = textContent.split(/\s+/).filter(Boolean).length;
+      // Enforce the 500 word limit
+      if (this.wordCount > 500) {
+        this.contentError = 'Post content cannot exceed 500 words.';
+        const words = textContent.split(/\s+/).slice(0, 500);
+        this.quill.setText(words.join(' ') + ' '); // Add space to prevent joining last two words
+        // Manually update blogContent as setting text doesn't trigger 'text-change' event
+        this.blogContent = this.quill.root.innerHTML;
+      } else {
+        this.contentError = '';
+      }
+    },
     async publishPost() {
-      const rawHashtags = this.hashtagsInput.split(/\s+/);
-      const hashtags = rawHashtags.filter(tag => tag.startsWith('#'));
+      const rawHashtags = this.hashtagsInput.split(/\s+/).filter(Boolean); // Filter out empty strings
+      const hashtags = rawHashtags.filter(tag => tag.startsWith('#') && tag.length > 1);
       const uniqueHashtags = new Set(hashtags);
       if (hashtags.length !== uniqueHashtags.size) {
         this.showErrorMessage = 'Each hashtag must be unique. Remove duplicate hashtags.';
         return;
       }
       if (!this.blogTitle || !this.blogContent || hashtags.length === 0) {
-        this.showErrorMessage = 'Please enter a title, content, and at least one hashtag starting with "#".';
+        this.showErrorMessage = 'Please enter a title, content, and at least one non-empty hashtag starting with "#".';
         return;
+      }
+      if (this.wordCount > 500) {
+        this.showErrorMessage = 'Post content cannot exceed 500 words.';
+        return; // Don't proceed if the content is too long
       }
       try {
         const postRef = dbRef(db, 'posts');
@@ -183,5 +229,11 @@ export default {
 .error-message {
   color: red;
   text-align: center;
+}
+
+.word-count {
+  margin-top: 5px;
+  color: #333;
+  /* Additional styling if needed */
 }
 </style>
