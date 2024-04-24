@@ -5,10 +5,10 @@
       <div class="posts-section">
         <!-- ...Search and Create Post Bar... -->
         <div class="search-create-bar">
-          <input type="text" placeholder="Search" class="search-input"/>
+          <input type="text" placeholder="Search" class="search-input" v-model="searchTerm"/>
           <button class="create-post-btn" @click="navigateToCreatePost">Create Post</button>
         </div>
-        <div class="article" v-for="post in posts" :key="post.id">
+        <div class="article" v-for="post in filteredPosts" :key="post.id">
           <!-- Title on the top row -->
           <div class="title-container">{{ post.title }}<button v-if="post.userId === currentUserId" class="delete-post-btn" @click="confirmDelete(post.id)">Delete Post</button></div>
 
@@ -74,7 +74,8 @@ export default {
   data() {
     return {
       posts: [],
-      trendingTags: []
+      trendingTags: [],
+      searchTerm: ''
     };
   },
   methods: {
@@ -201,6 +202,19 @@ export default {
   currentUserId() {
     return auth.currentUser ? auth.currentUser.uid : null;
   },
+  filteredPosts() {
+    if (!this.searchTerm.trim()) {
+      return this.posts;  
+    }
+    const lowerCaseSearchTerm = this.searchTerm.toLowerCase();
+    return this.posts.filter(post => {
+      const contentText = post.content ? (post.content.textContent || post.content.innerText || "").toLowerCase() : "";
+      const titleMatch = post.title.toLowerCase().includes(lowerCaseSearchTerm);
+      const contentMatch = contentText.includes(lowerCaseSearchTerm);
+      const hashtagMatch = post.hashtags.some(tag => tag.toLowerCase().includes(lowerCaseSearchTerm));
+      return titleMatch || contentMatch || hashtagMatch;
+    });
+  }
 },
   mounted() {
     this.fetchPosts();
