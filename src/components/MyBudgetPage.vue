@@ -59,7 +59,10 @@
 </div>
 
 <div class='historical_compare'>
+    <button @click="exportBarChartToCSV">Export to CSV</button>
+    <button @click="exportBarChartToPDF">Export to PDF</button>
         <canvas id="hist_Chart"></canvas>
+
     </div>
     </div>
 </template>
@@ -103,7 +106,7 @@ export default {
         };
     },
     computed: {
-        isPieChartDataAvailable() {
+    isPieChartDataAvailable() {
         return this.chartData.datasets.some(dataset => dataset.data.length > 0 && dataset.data.some(data => data > 0));
     },
     isLineChartDataAvailable() {
@@ -391,6 +394,36 @@ export default {
         }
     },
 
+
+    exportBarChartToCSV() {
+        const labels = this.barChart.data.labels;
+        const incomeData = this.barChart.data.datasets[0].data; // Assuming dataset[0] is Income
+        const expensesData = this.barChart.data.datasets[1].data; // Assuming dataset[1] is Expenses
+        const rows = labels.map((label, index) => [label, incomeData[index], expensesData[index]]);
+
+        this.exportCSV(rows, ['Month', 'Income', 'Expenses'], 'monthly_finances.csv');
+    },
+
+    exportBarChartToPDF() {
+        const doc = new jsPDF();
+        doc.text('Monthly Income vs Expenses', 14, 16);
+        const headers = [['Month', 'Income', 'Expenses']];
+        const body = this.barChart.data.labels.map((label, index) => [
+            label,
+            this.barChart.data.datasets[0].data[index],
+            this.barChart.data.datasets[1].data[index],
+        ]);
+
+        doc.autoTable({
+            head: headers,
+            body: body,
+            startY: 20,
+            theme: 'striped'
+        });
+
+        doc.save('monthly_finances.pdf');
+    },
+
     exportCSV(data, columns, filename) {
     // Ensure each row of data is an array; if not, wrap it in an array
     let csvContent = columns.join(",") + "\n" + data.map(e => Array.isArray(e) ? e.join(",") : e).join("\n");
@@ -398,7 +431,7 @@ export default {
     saveAs(blob, filename);
 },
 
-    exportPDF(chartData, title, filename) {
+exportPDF(chartData, title, filename) {
         const doc = new jsPDF();
         doc.text(title, 20, 20);
         let body = [];
@@ -417,8 +450,7 @@ export default {
         });
         doc.save(filename);
     }
-
-    }
+}
 
 };
 
@@ -497,16 +529,15 @@ export default {
     color:white;
     border-radius:20px;
 }
+
 .chart-container {
     display: flex;
-    height: 500px; /* Adjust the height as needed */
-    width: 80%;
+    align-items: flex-start; /* Align the charts to the top */
+    gap: 20px; /* Add space between the pie-chart and line-chart */
+    justify-content: space-between; /* Add space between the children */
+
 }
-.pie-chart,
-.line-chart {
-    flex: 1; /* Each chart container will take up equal space */
-    padding: 1rem; /* This adds some space around the charts */
-}
+
 
 .line-chart button {
     margin: 10px;
@@ -522,6 +553,18 @@ export default {
 
 
 .pie-chart button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 12px;
+    color: white;
+    background-color: #4158D0;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.historical_compare button {
     margin: 10px;
     padding: 10px 20px;
     font-size: 12px;
@@ -552,8 +595,18 @@ export default {
     outline: none;
     box-shadow: 0 0 0 2px rgba(65, 88, 208, 0.5);
 }
+
+.historical_compare button:hover {
+    background-color: #293B8F;
+    transform: scale(1.05);
+}
+
+.historical_compare button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(65, 88, 208, 0.5);
+}
+
 .historical_compare{
-    position: relative;
   width: 40%;
   height: 400px; /* Adjust height as needed */
   margin-top: px;
@@ -562,9 +615,9 @@ export default {
 
 .budget-tracker {
   font-family: 'Arial', sans-serif;
-  max-width: 300px; /* Adjust to your preference */
   font-size: 2rem;
-  margin:2rem
+  flex: 1; /* Take as much space as needed */
+
 }
 
 .budget-header {
@@ -625,7 +678,7 @@ export default {
 
 .content-container {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around; /* This will put space around the items */
     padding: 20px;
 }
 .charts-container {
@@ -637,6 +690,8 @@ export default {
 .line-chart {
     flex: 1; /* Each chart container will take up equal space */
     padding: 1rem; /* This adds some space around the charts */
+    flex-basis: 45%; /* Both charts will occupy 45% of the container's width */
+
 }
 
 .budget-warning {
