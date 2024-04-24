@@ -27,7 +27,8 @@
     </div >
     <div class="content-container">
     <div class="budget-tracker">
-        <div class="budget-header">
+        <div class = 'indicator'>
+            <div class="budget-header">
             <span class="budget-title">Total Budget</span>
         </div>
         <div class="budget-details">
@@ -38,15 +39,9 @@
         </div>
         <div class="budget-warning" v-if="this.currentAmount > this.salary">
             You have exceeded your budget!
-    </div>
-    </div>
+        </div>
+        </div>
     <div class="chart-container">
-    <div class="pie-chart" v-if="isPieChartDataAvailable">
-        <button @click="exportPieChart('csv')">Export CSV</button>
-        <button @click="exportPieChart('pdf')">Export PDF</button>
-        <Pie :data="chartData" :options="chartOptions" />
-
-    </div>
     <div class="line-chart" v-if="isLineChartDataAvailable">
     <button @click="exportLineChart('csv')">Export CSV</button>
     <button @click="exportLineChart('pdf')">Export PDF</button>
@@ -54,16 +49,25 @@
     <button @click="setViewMode('daily')">Show Daily Transactions</button>
     <button @click="setViewMode('monthly')">Show Monthly Transactions</button>
     <button @click="setViewMode('yearly')">Show Yearly Transactions</button>
-    </div>
+     </div>
+     <div class="historical_compare">
+    <button @click="exportBarChartToCSV" v-if="isHistoricalDataAvailable">Export to CSV</button>
+    <button @click="exportBarChartToPDF" v-if="isHistoricalDataAvailable">Export to PDF</button>
+    <canvas id="hist_Chart"></canvas>
 </div>
 </div>
-
-<div class='historical_compare'>
-    <button @click="exportBarChartToCSV">Export to CSV</button>
-    <button @click="exportBarChartToPDF">Export to PDF</button>
-        <canvas id="hist_Chart"></canvas>
-
     </div>
+</div>
+
+    <!-- <div class="pie-chart" v-if="isPieChartDataAvailable">
+        <button @click="exportPieChart('csv')">Export CSV</button>
+        <button @click="exportPieChart('pdf')">Export PDF</button>
+        <Pie :data="chartData" :options="chartOptions" />
+    </div> -->
+
+
+
+
     </div>
 </template>
 
@@ -90,6 +94,7 @@ export default {
     components: { Pie, Line},
     data() {
         return {
+            transactionData:[],
             historicalData: [],
             barChart: null,
             investment: 0,
@@ -106,8 +111,8 @@ export default {
         };
     },
     computed: {
-    isPieChartDataAvailable() {
-        return this.chartData.datasets.some(dataset => dataset.data.length > 0 && dataset.data.some(data => data > 0));
+    isHistoricalDataAvailable() {
+        return this.historicalData && this.historicalData.length > 0;
     },
     isLineChartDataAvailable() {
         return this.lineChartData.datasets.some(dataset => dataset.data.length > 0 && dataset.data.some(data => data > 0));
@@ -126,6 +131,15 @@ export default {
         return 0;
     },
     formattedCurrentAmount() {
+        // Filter transactions based on frequency
+        const filteredTransactions_monthly = this.transactionData.filter(transaction => transaction.transactionFrequency === 'Monthly');
+        // Calculate total amount for filtered transactions
+        const totalAmount_monthly = filteredTransactions_monthly.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
+        const filteredTransactions_semi = this.transactionData.filter(transaction => transaction.transactionFrequency === 'Semi-annual');
+        const totalAmount_semi = filteredTransactions_semi.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
+        const filteredTransactions_annual = this.transactionData.filter(transaction => transaction.transactionFrequency === 'Annual');
+        const totalAmount_annual = filteredTransactions_annual.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
+        this.payment = totalAmount_monthly + totalAmount_semi / 6 + totalAmount_annual / 12
         this.currentAmount = this.investment + this.payment + this.savings
         return this.currentAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
     },
@@ -154,9 +168,10 @@ export default {
         }]
       };
     },
-    chartOptions() {
+    linechartoptions() {
       return {
         responsive: true,
+        maintainAspectRatio: false, // Set this to false to allow custom dimensions
         plugins: {
           datalabels: {
             color: '#fff',
@@ -191,6 +206,14 @@ export default {
         this.fetchHistoricalData();
         this.fetchBudgetAmounts();
         this.fetchTransactions();
+        const currentUser = auth.currentUser;
+        const userTransactionsRef = dbRef(db, `plannedpayments/${currentUser.uid}`);
+        onValue(userTransactionsRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data){
+                this.transactionData = Object.values(data);
+            }
+    });
     },
     methods: {
 
@@ -344,7 +367,6 @@ export default {
             },
             options: {
             responsive: true,
-            maintainAspectRatio: false,
             scales: {
                 x: {
                 stacked: false,
@@ -532,10 +554,9 @@ exportPDF(chartData, title, filename) {
 
 .chart-container {
     display: flex;
-    align-items: flex-start; /* Align the charts to the top */
-    gap: 20px; /* Add space between the pie-chart and line-chart */
-    justify-content: space-between; /* Add space between the children */
-
+    flex-direction: row;
+    padding: auto;
+    margin-top: 2rem;
 }
 
 
@@ -607,17 +628,18 @@ exportPDF(chartData, title, filename) {
 }
 
 .historical_compare{
-  width: 40%;
-  height: 400px; /* Adjust height as needed */
+  width: 70%;
+  height: 380px; /* Adjust height as needed */
   margin-top: px;
   margin:5rem;
 }
 
-.budget-tracker {
-  font-family: 'Arial', sans-serif;
-  font-size: 2rem;
-  flex: 0.5; /* Take as much space as needed */
+.line-chart {
+    padding: 1rem;
+    box-sizing: border-box; /* Ensures that padding is included in the width */
+    width: 40vw; /* Takes the full viewport width */
 }
+
 
 .budget-header {
   display: flex;
@@ -628,6 +650,7 @@ exportPDF(chartData, title, filename) {
 
 .budget-title {
   font-weight: bold;
+  font-size: 30px;
   color: #333;
 }
 
@@ -677,20 +700,26 @@ exportPDF(chartData, title, filename) {
 
 .content-container {
     display: flex;
-    padding: 20px;
+    flex-direction: row; /* Change this to row to align children side by side */
+    align-items: flex-start; /* Aligns children to the start of the cross axis */
+    justify-content: space-between; /* This will place space between the children if there's extra space */
+    padding: 0;
+    margin: 0;
+}
+.line-chart, .historical_compare {
+    flex-grow: 1; /* Allows the chart to grow and fill the space */
+    /* Other properties like padding, margin, etc. */
+    margin: 1rem; /* Adjust margin as needed to create space between the charts */
 }
 
-.charts-container {
-    display: flex;
-    flex-direction: column;
-    width: 80%;
-}
-.pie-chart,
-.line-chart {
-    flex: 1; /* Each chart container will take up equal space */
-    padding: 1rem; /* This adds some space around the charts */
-    flex-basis: 45%; /* Both charts will occupy 45% of the container's width */
 
+
+
+.budget-tracker {
+  font-family: 'Arial', sans-serif;
+  padding: 1rem;
+  height: 30vh; /* Adjusted height here */
+  width: 70vw; /* Takes the full viewport width */
 }
 
 .budget-warning {
@@ -699,6 +728,10 @@ exportPDF(chartData, title, filename) {
     margin-top: 1rem;
     text-align: center;
     font-size: 24px;
+}
+.indicator{
+padding-top:2rem;
+padding-left:2rem;
 }
 
 

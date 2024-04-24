@@ -243,7 +243,7 @@ export default {
       return {
         labels: ['Investment', 'Payment', 'Savings', 'Remaining Budget'],
         datasets: [{
-          data: [this.investment, this.payment, this.savings, this.salary - this.investment - this.payment - this.savings],
+          data: [this.investment.toFixed(2), this.payment.toFixed(2), this.savings.toFixed(2), (this.salary - this.investment - this.payment - this.savings).toFixed(2)],
           backgroundColor: [
             'rgba(255, 99, 132, 0.6)',
             'rgba(54, 162, 235, 0.6)',
@@ -349,13 +349,13 @@ export default {
           }
           spentData.push(spentAmount.toFixed(2)); // Convert to 2 decimal places
         }
-        labels.push('Investment')
+        labels.push('Investments')
         plannedData.push(this.investment)
         let spentAmount = 0;
           if (transactions) {
             for (const transactionId in currentMonthTransactions) {
               const transaction = transactions[transactionId];
-              if (transaction.transactionCategory === 'Investment') {
+              if (transaction.transactionCategory === 'Investments') {
               spentAmount += Math.abs(parseFloat(transaction.transactionAmount));
               }
             }
