@@ -12,9 +12,20 @@
 
         <!-- Dynamic Articles -->
         <div class="article" v-for="post in posts" :key="post.id">
-          <h3>{{ post.title }}</h3>
-          <img v-if="post.coverPhoto" :src="post.coverPhoto" class="post-image"/>
-          <p>{{ post.content }}</p>
+          <div class="title">{{ post.title }}</div>
+          <div class="content">
+            <div class="top-row">
+              <div v-if="post.hashtags && post.hashtags.length" class="hashtags">
+                <span v-for="tag in post.hashtags" :key="tag" class="hashtag">{{ tag }}</span>
+              </div>
+            </div>
+            <div class="main-row">
+              <div v-if="post.coverPhoto" class="cover-photo-container">
+                <img :src="post.coverPhoto" class="cover-photo"/>
+              </div>
+              <div class="blog-content" v-html="post.content"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -31,7 +42,10 @@
         <div class="tags-section">
           <h3>Popular Tags</h3>
           <div class="tags">
-            <button class="tag-btn" v-for="tag in tags" :key="tag">#{{ tag }}</button>
+            <div v-for="tagInfo in trendingTags" :key="tagInfo.tag" class="tag-container">
+              <button class="tag-btn">{{ tagInfo.tag }}</button>
+              <span class="article-count">{{ tagInfo.postCount }} articles with this hashtag!</span>
+            </div>
           </div>
         </div>
       </div>
@@ -49,7 +63,7 @@ export default {
   data() {
     return {
       posts: [],
-      tags: ['fintech', 'bitcoin', 'stocks', 'budgeting', 'tutorial', 'business']
+      trendingTags: []
     };
   },
   setup() {
@@ -62,17 +76,60 @@ export default {
     return { navigateToCreatePost };
   },
   mounted() {
-    const postsRef = ref(db, 'users/' + auth.currentUser.uid + '/posts');
-    onValue(postsRef, (snapshot) => {
-      const data = snapshot.val();
-      this.posts = [];
-      for (let id in data) {
-        this.posts.push({ id, ...data[id] });
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        const postsRef = ref(db, `users/${user.uid}/posts`);
+        onValue(postsRef, (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            this.updatePostsAndTags(data);
+          }
+        }, {
+          onlyOnce: false
+        });
+      } else {
+        // Redirect to the login page if no user logged in.
+        this.$router.push('/login');
       }
-    }, {
-      onlyOnce: false
     });
   },
+  methods: {
+    updatePostsAndTags(data) {
+      const allTags = {};
+      const postCountPerTag = {};
+
+      this.posts = Object.values(data).map((post) => {
+        if (post.hashtags) {
+          post.hashtags.forEach(tag => {
+            if (allTags[tag]) {
+              allTags[tag]++;
+            } else {
+              allTags[tag] = 1;
+            }
+
+            if (!postCountPerTag[tag]) {
+              postCountPerTag[tag] = new Set();
+            }
+            postCountPerTag[tag].add(post.id);
+          });
+        }
+        return post;
+      });
+
+      this.trendingTags = Object.entries(allTags)
+                                .sort((a, b) => b[1] - a[1])
+                                .slice(0, 5)
+                                .map(([tag, count]) => {
+                                  return {
+                                    tag: tag,
+                                    count: count,
+                                    postCount: postCountPerTag[tag] ? postCountPerTag[tag].size : 0
+                                  };
+                                });
+
+      console.log('Trending tags:', this.trendingTags);
+    }
+  }
 };
 </script>
 
@@ -83,6 +140,9 @@ export default {
   background: white;
   margin-left: 300px; /* Same as sidebar width */
   margin-top: 90px; /* Adjust for top navbar height */
+  ::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .content-container {
@@ -91,13 +151,16 @@ export default {
 }
 
 .posts-section {
-  flex: 0 0 75%;
+  flex: 0 0 70%; /* Set a fixed width for the posts section */
+  max-width: 70%;
+  overflow-x: hidden; /* Hide horizontal overflow */
   padding: 20px;
-  background: #ccc; 
+  background: #ccc;
 }
 
 .sidebar-section {
-  flex: 0 0 25%;
+  flex: 0 0 30%; /* Set a fixed width for the sidebar */
+  max-width: 30%;
   padding: 20px;
   background: #ccc;
   display: flex;
@@ -135,11 +198,61 @@ export default {
 }
 
 .article {
+  display: flex; /* Use flexbox for layout */
   padding: 20px;
   background-color: white;
   margin-bottom: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.article img {
+  max-width: 200px; /* Set a max-width for the image */
+  max-height: 150px; /* Set a max-height for the image */
+  margin-right: 20px; /* Add some space between the image and content */
+  border-radius: 5px; /* Optional: Add border-radius to the image */
+}
+
+.article p {
+  flex: 1; /* Let the content take up the remaining space */
+}
+
+.title {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.hashtags {
+  margin-bottom: 10px;
+}
+
+.hashtag {
+  margin-right: 5px;
+  padding: 2px 5px;
+  background-color: #E4E7F0;
+  border-radius: 5px;
+}
+
+.cover-photo-container {
+  float: left;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+.cover-photo {
+  max-width: 100%;
+  border-radius: 5px;
+}
+
+.blog-content {
+  overflow: hidden;
+  /* Clear the float to prevent layout issues */
+}
+
+.main-row {
+  overflow: hidden;
+  /* Clear the float to prevent layout issues */
 }
 
 .sidebar-buttons {
@@ -166,11 +279,17 @@ export default {
 .tags {
   display: flex;
   flex-direction: column;
+  overflow-y: auto; /* Allow vertical scrolling for tags */
+  max-height: calc(100vh - 210px); /* Set a maximum height for the tags section */
 }
 
 .tag-btn {
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   background-color: #E4E7F0;
+  border: none;
+  border-radius: 15px;
+  padding: 8px; /* Adjust padding */
+  cursor: pointer;
   transition: background-color 0.3s, transform 0.3s;
 }
 
@@ -178,5 +297,22 @@ export default {
   background: linear-gradient(-135deg, #71b7e6, #9b59b6);
   color: white;
   transform: scale(1.05);
+}
+
+.tag-container {
+  background-color: #E4E7F0;
+  padding: 8px; /* Adjust padding */
+  margin-bottom: 5px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8em;
+}
+
+.article-count {
+  margin-left: 10px;
+  font-size: 0.9em;
+  color: #333;
 }
 </style>
