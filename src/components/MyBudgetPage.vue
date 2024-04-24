@@ -93,6 +93,7 @@ export default {
     components: { Pie, Line},
     data() {
         return {
+            transactionData:[],
             historicalData: [],
             barChart: null,
             investment: 0,
@@ -129,6 +130,15 @@ export default {
         return 0;
     },
     formattedCurrentAmount() {
+        // Filter transactions based on frequency
+        const filteredTransactions_monthly = this.transactionData.filter(transaction => transaction.transactionFrequency === 'Monthly');
+        // Calculate total amount for filtered transactions
+        const totalAmount_monthly = filteredTransactions_monthly.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
+        const filteredTransactions_semi = this.transactionData.filter(transaction => transaction.transactionFrequency === 'Semi-annual');
+        const totalAmount_semi = filteredTransactions_semi.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
+        const filteredTransactions_annual = this.transactionData.filter(transaction => transaction.transactionFrequency === 'Annual');
+        const totalAmount_annual = filteredTransactions_annual.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
+        this.payment = totalAmount_monthly + totalAmount_semi / 6 + totalAmount_annual / 12
         this.currentAmount = this.investment + this.payment + this.savings
         return this.currentAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
     },
@@ -195,6 +205,14 @@ export default {
         this.fetchHistoricalData();
         this.fetchBudgetAmounts();
         this.fetchTransactions();
+        const currentUser = auth.currentUser;
+        const userTransactionsRef = dbRef(db, `plannedpayments/${currentUser.uid}`);
+        onValue(userTransactionsRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data){
+                this.transactionData = Object.values(data);
+            }
+    });
     },
     methods: {
 
