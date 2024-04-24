@@ -9,7 +9,6 @@
           <input type="text" placeholder="Search" class="search-input"/>
           <button class="create-post-btn" @click="navigateToCreatePost">Create Post</button>
         </div>
-
         <!-- Dynamic Articles -->
         <div class="article" v-for="post in posts" :key="post.id">
           <div class="title">{{ post.title }}</div>
@@ -28,7 +27,6 @@
           </div>
         </div>
       </div>
-
       <!-- Sidebar Section -->
       <div class="sidebar-section">
         <!-- Sidebar Buttons -->
@@ -37,7 +35,6 @@
           <button class="sidebar-btn">Popular of the day</button>
           <button class="sidebar-btn">Following</button>
         </div>
-
         <!-- Popular Tags -->
         <div class="tags-section">
           <h3>Popular Tags</h3>
@@ -66,39 +63,32 @@ export default {
       trendingTags: []
     };
   },
-  setup() {
-    const router = useRouter();
-
-    const navigateToCreatePost = () => {
-      router.push({ name: 'create-post' });
-    };
-
-    return { navigateToCreatePost };
-  },
-  mounted() {
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        const postsRef = ref(db, `users/${user.uid}/posts`);
-        onValue(postsRef, (snapshot) => {
-          const data = snapshot.val();
-          if (data) {
-            this.updatePostsAndTags(data);
-          }
-        }, {
-          onlyOnce: false
-        });
-      } else {
-        // Redirect to the login page if no user logged in.
-        this.$router.push('/login');
-      }
-    });
-  },
   methods: {
-    updatePostsAndTags(data) {
+    navigateToCreatePost() {
+      this.$router.push({ name: 'create-post' });
+    },
+    fetchPosts() {
+      const postsRef = ref(db, 'posts');  // Fetching from the common posts node
+      onValue(postsRef, (snapshot) => {
+        const postsArray = [];
+        snapshot.forEach(childSnapshot => {
+          let post = childSnapshot.val();
+          post.id = childSnapshot.key; // Store the Firebase key as part of the post object
+          postsArray.push(post);
+        });
+        this.posts = postsArray;
+        this.updateTagsAndSort();
+      }, {
+        onlyOnce: false
+      });
+    },
+    updateTagsAndSort() {
       const allTags = {};
       const postCountPerTag = {};
-
-      this.posts = Object.values(data).map((post) => {
+      // Sorting posts by createdAt date
+      this.posts.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      
+      this.posts.forEach(post => {
         if (post.hashtags) {
           post.hashtags.forEach(tag => {
             if (allTags[tag]) {
@@ -106,16 +96,13 @@ export default {
             } else {
               allTags[tag] = 1;
             }
-
             if (!postCountPerTag[tag]) {
               postCountPerTag[tag] = new Set();
             }
             postCountPerTag[tag].add(post.id);
           });
         }
-        return post;
       });
-
       this.trendingTags = Object.entries(allTags)
                                 .sort((a, b) => b[1] - a[1])
                                 .slice(0, 5)
@@ -123,12 +110,13 @@ export default {
                                   return {
                                     tag: tag,
                                     count: count,
-                                    postCount: postCountPerTag[tag] ? postCountPerTag[tag].size : 0
+                                    postCount: postCountPerTag[tag].size
                                   };
                                 });
-
-      console.log('Trending tags:', this.trendingTags);
     }
+  },
+  mounted() {
+    this.fetchPosts();
   }
 };
 </script>

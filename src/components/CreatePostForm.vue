@@ -6,12 +6,10 @@
       <button type="button" @click="clickUpload" class="upload-cover-photo-button">Upload Cover Photo</button>
       <input type="file" @change="handleCoverPhotoUpload" accept=".jpg, .jpeg, .png" class="cover-photo-input" ref="coverPhotoInput" style="display: none;"/>
     </div>
-    
     <div v-if="coverPhoto" class="cover-photo-preview-container">
       <img :src="coverPhoto" class="cover-photo-preview"/>
       <button type="button" @click="clearImage" class="remove-cover-photo-button">Remove</button>
     </div>
-    
     <div ref="quillEditor" class="quill-container"></div>
     <button type="button" @click="publishPost" class="publish-btn">Publish Post</button>
     <p v-if="showSuccessMessage" class="success-message">{{ showSuccessMessage }}</p>
@@ -61,39 +59,36 @@ export default {
         reader.readAsDataURL(file);
         this.coverPhotoFile = file;
       } else {
-        alert("Only JPG/JPEG and PNG files are allowed.");
+        this.showErrorMessage = "Only JPG/JPEG and PNG files are allowed.";
       }
     },
     clearImage() {
       this.coverPhoto = null;
       this.coverPhotoFile = null;
-      this.$refs.coverPhotoInput.value = ''; // Reset input after removing the photo
+      this.$refs.coverPhotoInput.value = '';
     },
     async publishPost() {
       const rawHashtags = this.hashtagsInput.split(/\s+/);
       const hashtags = rawHashtags.filter(tag => tag.startsWith('#'));
-
-      // Check if there are any duplicate hashtags
       const uniqueHashtags = new Set(hashtags);
       if (hashtags.length !== uniqueHashtags.size) {
         this.showErrorMessage = 'Each hashtag must be unique. Remove duplicate hashtags.';
         return;
       }
-
       if (!this.blogTitle || !this.blogContent || hashtags.length === 0) {
         this.showErrorMessage = 'Please enter a title, content, and at least one hashtag starting with "#".';
         return;
       }
-
       try {
-        const postRef = dbRef(db, `users/${auth.currentUser.uid}/posts`);
+        const postRef = dbRef(db, 'posts');
         const newPostRef = push(postRef);
         await set(newPostRef, {
           title: this.blogTitle,
           coverPhoto: this.coverPhoto,
           content: this.blogContent,
-          hashtags: [...uniqueHashtags], // Store unique hashtags
-          createdAt: new Date().toISOString()
+          hashtags: [...uniqueHashtags],
+          createdAt: new Date().toISOString(),
+          userId: auth.currentUser.uid
         });
         this.showSuccessMessage = 'Post published successfully!';
         setTimeout(() => {
