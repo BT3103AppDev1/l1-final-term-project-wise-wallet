@@ -97,53 +97,45 @@ import {auth, db} from '@/assets/firebase.js';
 import {ref,onValue} from 'firebase/database';
 import { getAuth, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
 export default {
-    mounted() {
-        const currentUser = auth.currentUser;
-        // Update the email
-        document.getElementById('displayName').innerText = currentUser.displayName;
-        document.getElementById('userEmail').innerText = currentUser.email;
-    },
-    props: {
-    isBudgetNegative: {
-        type: Boolean,
-        default: false
-    }
-    },
     data() {
         return {
-        showNotification: false,
-        totalExpensesForMonth: 0,
-        totalIncomeForMonth: 0,
-        transactionData: [], // Initialize transactionData array
-        currentUser: null
-    };
+            showNotification: false,
+            totalExpensesForMonth: 0,
+            totalIncomeForMonth: 0,
+            transactionData: [], // Initialize transactionData array
+            currentUser: null
+        };
     },
     mounted() {
-    // Fetch and calculate total expenses and total income when the component is mounted
-    this.fetchTransactionData();
-    const currentUser = auth.currentUser;
-    console.log(currentUser.displayName)
-    // Update the email in the h4 element
-    document.getElementById('userEmail').innerText = currentUser.email
-    },
-    methods:{
-        fetchTransactionData() {
-        const currentUser = auth.currentUser;
-        const userTransactionsRef = ref(db, `transactions/${currentUser.uid}`);
-
-        onValue(userTransactionsRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                this.transactionData = Object.values(data); // Assign transaction data to the component's property
-                this.calculateTotalExpensesForMonth(); // Calculate total expenses for the month after fetching transaction data
-                this.calculateTotalIncomeForMonth();
-                this.checkNotification(); // Check notification after both expenses and income are calculated
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                this.currentUser = user;
+                this.fetchTransactionData();
+                this.updateUserProfile(user);
+            } else {
+                // User is not logged in, handle accordingly
+                console.log("No user logged in");
             }
         });
     },
-    calculateTotalExpensesForMonth() {
-        // Check if transactionData is available
-        if (this.transactionData.length > 0) {
+    methods: {
+        updateUserProfile(user) {
+            document.getElementById('displayName').innerText = user.displayName || 'User';
+            document.getElementById('userEmail').innerText = user.email || 'No email provided';
+        },
+        fetchTransactionData() {
+            const userTransactionsRef = ref(db, `transactions/${this.currentUser.uid}`);
+            onValue(userTransactionsRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    this.transactionData = Object.values(data); // Assign transaction data to the component's property
+                    this.calculateTotalExpensesForMonth(); // Calculate total expenses for the month after fetching transaction data
+                    this.calculateTotalIncomeForMonth();
+                    this.checkNotification(); // Check notification after both expenses and income are calculated
+                }
+            });
+        },
+        calculateTotalExpensesForMonth() {
             // Calculate total expenses for the month using this.transactionData
             const currentDate = new Date();
             const currentMonth = currentDate.getMonth() + 1;
@@ -162,13 +154,8 @@ export default {
             this.totalExpensesForMonth = currentMonthExpenses.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
             // Ensure totalExpenses is positive
             this.totalExpensesForMonth = Math.abs(this.totalExpensesForMonth).toFixed(2);
-        } else {
-            console.error("Transaction data is not available.");
-        }
-    },
-    calculateTotalIncomeForMonth() {
-        // Check if transactionData is available
-        if (this.transactionData.length > 0) {
+        },
+        calculateTotalIncomeForMonth() {
             // Calculate total income for the month using this.transactionData
             const currentDate = new Date();
             const currentMonth = currentDate.getMonth() + 1;
@@ -187,32 +174,29 @@ export default {
 
             // Ensure totalIncome is positive and formatted to two decimal places
             this.totalIncomeForMonth = Math.abs(totalIncome).toFixed(2);
-        } else {
-            console.error("Transaction data is not available.");
-        }
-    },
-    checkNotification() {
-      // Check if total expenses exceed total income
-      if (parseFloat(this.totalExpensesForMonth) > parseFloat(this.totalIncomeForMonth)) {
-        // Show notification if expenses exceed income
-        this.showNotification = true;
-      } else {
-        // Hide notification if expenses are within or below income
-        this.showNotification = false;
-      }
-    },
-        logOut(){
+        },
+        checkNotification() {
+            // Check if total expenses exceed total income
+            if (parseFloat(this.totalExpensesForMonth) > parseFloat(this.totalIncomeForMonth)) {
+                // Show notification if expenses exceed income
+                this.showNotification = true;
+            } else {
+                // Hide notification if expenses are within or below income
+                this.showNotification = false;
+            }
+        },
+        logOut() {
             auth.signOut()
-            .then(() => {
-            // Sign-out successful.
-            console.log("User logged out successfully");
-            alert("User logged out successfully")
-            this.$router.push('/')
-        })
-        .catch((error) => {
-        // An error happened.
-            console.error("Error logging out:", error);
-        });
+                .then(() => {
+                    // Sign-out successful.
+                    console.log("User logged out successfully");
+                    alert("User logged out successfully");
+                    this.$router.push('/');
+                })
+                .catch((error) => {
+                    // An error happened.
+                    console.error("Error logging out:", error);
+                });
         }
     }
 }
