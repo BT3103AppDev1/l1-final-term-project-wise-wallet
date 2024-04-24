@@ -616,8 +616,7 @@ exportPDF(chartData, title, filename) {
 .budget-tracker {
   font-family: 'Arial', sans-serif;
   font-size: 2rem;
-  flex: 1; /* Take as much space as needed */
-
+  flex: 0.5; /* Take as much space as needed */
 }
 
 .budget-header {
@@ -678,9 +677,9 @@ exportPDF(chartData, title, filename) {
 
 .content-container {
     display: flex;
-    justify-content: space-around; /* This will put space around the items */
     padding: 20px;
 }
+
 .charts-container {
     display: flex;
     flex-direction: column;
