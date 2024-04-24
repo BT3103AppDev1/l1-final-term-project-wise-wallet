@@ -27,7 +27,8 @@
     </div >
     <div class="content-container">
     <div class="budget-tracker">
-        <div class="budget-header">
+        <div class = 'indicator'>
+            <div class="budget-header">
             <span class="budget-title">Total Budget</span>
         </div>
         <div class="budget-details">
@@ -38,7 +39,8 @@
         </div>
         <div class="budget-warning" v-if="this.currentAmount > this.salary">
             You have exceeded your budget!
-    </div>
+        </div>
+        </div>
     <div class="chart-container">
     <div class="line-chart" v-if="isLineChartDataAvailable">
     <button @click="exportLineChart('csv')">Export CSV</button>
@@ -534,7 +536,8 @@ exportPDF(chartData, title, filename) {
 .chart-container {
     display: flex;
     flex-direction: row;
-    padding: auto
+    padding: auto;
+    margin-top: 2rem;
 }
 
 
@@ -628,6 +631,7 @@ exportPDF(chartData, title, filename) {
 
 .budget-title {
   font-weight: bold;
+  font-size: 30px;
   color: #333;
 }
 
@@ -697,7 +701,6 @@ exportPDF(chartData, title, filename) {
   padding: 1rem;
   height: 30vh; /* Adjusted height here */
   width: 70vw; /* Takes the full viewport width */
-  margin-bottom: 1.5rem
 }
 
 .budget-warning {
@@ -706,6 +709,10 @@ exportPDF(chartData, title, filename) {
     margin-top: 1rem;
     text-align: center;
     font-size: 24px;
+}
+.indicator{
+padding-top:2rem;
+padding-left:2rem;
 }
 
 
