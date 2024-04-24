@@ -46,7 +46,7 @@
                     <div class="paymentLabel">
                     <h1 v-if="!editPayment">{{ formattedPayment }}</h1>
                     <input v-else v-model="editPaymentValue" type="text" @blur="finishEditPayment" @keyup.enter="finishEditPayment">
-                        <p><i class='bx bx-edit-alt' v-if="!editPayment" @click="enableEditPayment" ></i> Monthly Planned Payment</p>
+                        <p> Monthly Planned Payment</p>
                     </div>
                     <div class="paymentLabel">
                         <h1 v-if="!editSavings">{{ formattedSavings }}</h1>
@@ -153,6 +153,7 @@ export default {
   data() {
     return {
       historicalData: [],
+      transactionData:[],
       barChart: null,
       salary: 0, 
       editSalary: false,
@@ -215,6 +216,15 @@ export default {
       return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(this.investment);
     },
     formattedPayment() {
+            // Filter transactions based on frequency
+            const filteredTransactions_monthly = this.transactionData.filter(transaction => transaction.transactionFrequency === 'Monthly');
+            // Calculate total amount for filtered transactions
+            const totalAmount_monthly = filteredTransactions_monthly.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
+            const filteredTransactions_semi = this.transactionData.filter(transaction => transaction.transactionFrequency === 'Semi-annual');
+            const totalAmount_semi = filteredTransactions_semi.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
+            const filteredTransactions_annual = this.transactionData.filter(transaction => transaction.transactionFrequency === 'Annual');
+            const totalAmount_annual = filteredTransactions_annual.reduce((total, transaction) => total + parseFloat(transaction.transactionAmount), 0);
+            this.payment = totalAmount_monthly + totalAmount_semi / 6 + totalAmount_annual / 12
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(this.payment);
     },
     formattedSavings() {
@@ -281,6 +291,14 @@ export default {
   mounted() {
     this.fetchHistoricalData();
     this.renderBudgetChart();
+    const currentUser = auth.currentUser;
+    const userTransactionsRef = dbRef(db, `plannedpayments/${currentUser.uid}`);
+    onValue(userTransactionsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data){
+            this.transactionData = Object.values(data);
+        }
+    });
   },
   methods: {
       async renderBudgetChart(){
@@ -342,27 +360,7 @@ export default {
               }
             }
           }
-        spentData.push(spentAmount.toFixed(2)); // Convert to 2 decimal places
-
-                // Calculate total income and expenses
-        //let totalIncome = 0;
-        //let totalExpenses = 0;
-
-        //for (const transactionId in currentMonthTransactions) {
-          //const transaction = transactions[transactionId];
-          //if (transaction.transactionCategory === 'Income' || transaction.transactionCategory==='Salary') {
-            //totalIncome += parseFloat(transaction.transactionAmount);
-         // } else {
-            //totalExpenses += parseFloat(transaction.transactionAmount);
-          //}
-        //}
-        //const currentSavings = totalIncome + totalExpenses;
-        //console.log(currentSavings)
-        //labels.push('Savings')  
-        //plannedData.push(this.savings)
-        //spentData.push(currentSavings)
-
-        // Render bar chart
+        spentData.push(spentAmount.toFixed(2));
         const ctx = document.getElementById('budgetChart').getContext('2d');
         new Chart(ctx, {
           type: 'bar',
