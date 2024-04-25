@@ -1,219 +1,286 @@
 <template>
     <div class="customerSupportContainer">
-        <div class="askQuestion">
-            <div class="askTitle">
-                <h1>Hi! How can we help?</h1>
-                <p>Explore <span>WiseWallet</span> FAQ for all your queries</p>
-                <div class="search-container">
-                    <input type="text" v-model="searchTerm" placeholder="Search for articles...">
-                    <button @click="searchArticles" type="submit">Search</button>
-                </div>
-            </div>
-            <div class="faqArticles">
-                <h1>FEATURED ARTICLES</h1>
-                <div class="articlesContainer">
-                    <router-link to="/aboutWiseWallet" class="router-link" style="text-decoration: none; color: inherit;">
-                    <div class="articles">
-                        <h2>About WiseWallet</h2>
-                        <p>About WiseWallet</p>
-                    </div>
-                    </router-link>
-                    <div class="articles">
-                        <router-link to="/billingfaq" class="router-link" style="text-decoration: none; color: inherit;">
-                        <h2>How do I cancel my WiseWallet Subscription</h2>
-                        <p>Billing & Subscription</p>
-                        </router-link>
-                    </div>
-                    <router-link to="/productOfferings" class="router-link" style="text-decoration: none; color: inherit;">
-                    <div class="articles">
-                        <h2>WiseWallet's product offerings</h2>
-                        <p>Account Basics</p>
-                    </div>
-                    </router-link>
-                    <div class="articles">
-                        <h2>Contact WiseWallet Support</h2>
-                        <p>Customer Support</p>
-                    </div> 
-                    <!-- Display filtered articles -->
-                    <div class="articles" v-for="article in filteredArticles" :key="article.title">
-                        <h2>{{ article.title }}</h2>
-                        <p>{{ article.category }}</p>
-                    </div>
-                </div>
-            </div>
-
+      <div class="askQuestion">
+        <div class="askTitle">
+          <h1>Hi! How can we help?</h1>
+          <p>Explore <span>WiseWallet</span> FAQ for all your queries</p>
+          <div class="search-container">
+            <input
+              type="text"
+              v-model="searchTerm"
+              placeholder="Search for articles..."
+            />
+            <button @click="searchArticles" type="submit">Search</button>
+          </div>
         </div>
-        <div class="supportTeam">
-            <div class="getInTouch">
-                <h1>Get in touch</h1>
-                <p>We're happy to hear from you. What's on your mind?</p>
+        <div class="faqArticles">
+          <h1>FEATURED ARTICLES</h1>
+          <div class="articlesContainer">
+            <!-- <router-link to="/" class="router-link" style="text-decoration: none; color: inherit;">
+                      <div class="articles">
+                          <h2>About WiseWallet</h2>
+                          <p>About WiseWallet</p>
+                      </div>
+                      </router-link>
+                      <div class="articles">
+                          <router-link to="/billingfaq" class="router-link" style="text-decoration: none; color: inherit;">
+                          <h2>How do I cancel my WiseWallet Subscription</h2>
+                          <p>Billing & Subscription</p>
+                          </router-link>
+                      </div>
+                      <router-link to="/productOfferings" class="router-link" style="text-decoration: none; color: inherit;">
+                      <div class="articles">
+                          <h2>WiseWallet's product offerings</h2>
+                          <p>Account Basics</p>
+                      </div>
+                      </router-link>
+                      <div class="articles">
+                          <h2>Contact WiseWallet Support</h2>
+                          <p>Customer Support</p>
+                      </div>  -->
+            <!-- Display filtered articles -->
+            <div
+              class="articles"
+              v-for="article in filteredArticlesList"
+              :key="article.title"
+            >
+              <router-link
+                :to= "article.routerLink"
+                class="router-link"
+                style="text-decoration: none; color: inherit"
+              >
+                <h2>{{ article.title }}</h2>
+                <p>{{ article.category }}</p>
+              </router-link>
             </div>
-            <div class="contactIcons">
-                <div class="contactWays">
-                    <i class='bx bxs-contact'></i>
-                    <h2>Chat support</h2>
-                    <p>Our support team is just a click away</p>
-                    <button class="chat-bot" @click="showChatBot">Chat Now</button>
-                </div>
-                <!-- <div class="contactWays">
-                    <i class='bx bx-envelope'></i>
-                    <h2>Email support</h2>
-                    <p>Prefer to email? Send us an email and we'll get back to you soon</p>
-                </div> -->
-                <div class="contactWays">
-                    <i class='bx bx-help-circle'></i>
-                    <h2>Help center</h2>
-                    <p>Our self-serve help center is open 24/7 with 150+ articles to help</p>
-                </div>
-
-                <!-- email -->
-                <div class="contactWays">
-                    <i class="bx bx-envelope"></i>
-                    <h2>Email support</h2>
-                    <p>Prefer to email? Send us an email and we'll get back to you soon</p>
-                    <!-- Add email contact functionality here -->
-                    <button class="email-btn" @click="openEmailClient">Contact via Email</button>
-                </div>
-            </div>
+          </div>
         </div>
-
-        <div id="chatbot">
-            <div id="chat-header">
-                <h2>Chat</h2>
-                <button @click="closeChatBot" id="closeButton" style="font-size: 20px;">X</button>
-            </div>
-            <div id="chat-container" ref="chatContainer">
-                <div class="message-container">
-                    <div v-for="message in chatMessages()" :key="message.content">
-
-                        <div v-if="message.role === 'assistant'" class="bot">{{ message.content }}</div>
-                        <div v-else-if="message.role === 'user'" class="user">{{ message.content }}</div>
-                    </div>
-                </div>
-
-            </div>
-            <form @submit="sendMessageToOpenAPI" id="sendMessage">
-                <input id="messageInput" placeholder="Start Typing..." />
-                <button class="send" type="submit">Send</button>
-            </form>
+      </div>
+      <div class="supportTeam">
+        <div class="getInTouch">
+          <h1>Get in touch</h1>
+          <p>We're happy to hear from you. What's on your mind?</p>
         </div>
-
+        <div class="contactIcons">
+          <div class="contactWays">
+            <i class="bx bxs-contact"></i>
+            <h2>Chat support</h2>
+            <p>Our support team is just a click away</p>
+            <button class="chat-bot" @click="showChatBot">Chat Now</button>
+          </div>
+          <!-- <div class="contactWays">
+                      <i class='bx bx-envelope'></i>
+                      <h2>Email support</h2>
+                      <p>Prefer to email? Send us an email and we'll get back to you soon</p>
+                  </div> -->
+          <div class="contactWays">
+            <i class="bx bx-help-circle"></i>
+            <h2>Help center</h2>
+            <p>
+              Our self-serve help center is open 24/7 with 150+ articles to help
+            </p>
+          </div>
+  
+          <!-- email -->
+          <div class="contactWays">
+            <i class="bx bx-envelope"></i>
+            <h2>Email support</h2>
+            <p>
+              Prefer to email? Send us an email and we'll get back to you soon
+            </p>
+            <!-- Add email contact functionality here -->
+            <button class="email-btn" @click="openEmailClient">
+              Contact via Email
+            </button>
+          </div>
+        </div>
+      </div>
+  
+      <div id="chatbot">
+        <div id="chat-header">
+          <h2>Chat</h2>
+          <button @click="closeChatBot" id="closeButton" style="font-size: 20px">
+            X
+          </button>
+        </div>
+        <div id="chat-container" ref="chatContainer">
+          <div class="message-container">
+            <div v-for="message in chatMessages()" :key="message.content">
+              <div v-if="message.role === 'assistant'" class="bot">
+                {{ message.content }}
+              </div>
+              <div v-else-if="message.role === 'user'" class="user">
+                {{ message.content }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <form @submit="sendMessageToOpenAPI" id="sendMessage">
+          <input id="messageInput" placeholder="Start Typing..." />
+          <button class="send" type="submit">Send</button>
+        </form>
+      </div>
     </div>
-
-</template>
-
-<script>
-
-export default {
-
+  </template>
+  
+  <script>
+  export default {
     data() {
-        return {
-            searchTerm: '',
-            articles: [
-                { title: "About WiseWallet", category: "Account Basics" },
-                { title: "How do I cancel my WiseWallet Subscription", category: "Billing & Subscription" },
-                { title: "WiseWallet's product offerings", category: "About WiseWallet" },
-                { title: "Contact WiseWallet Support", category: "About WiseWallet" }
-            ],
-            messagesHistory: [
-                { role: "system", content: "You are a customer support chatbot for WiseWallet." },
-                { role: "assistant", content: 'Hi, how can I help you today?' },
-            ],
-        };
+      return {
+        searchTerm: "",
+        articles: [
+          {
+            title: "About WiseWallet",
+            category: "Account Basics",
+            routerLink: "/",
+          },
+          {
+            title: "How do I cancel my WiseWallet Subscription",
+            category: "Billing & Subscription",
+            routerLink: "/billingfaq",
+          },
+          {
+            title: "WiseWallet's product offerings",
+            category: "About WiseWallet",
+            routerLink: "/productOfferings",
+          },
+          {
+            title: "Contact WiseWallet Support",
+            category: "About WiseWallet",
+            routerLink: "/aboutWiseWallet",
+          },
+        ],
+        filteredArticlesList: [
+          {
+            title: "About WiseWallet",
+            category: "Account Basics",
+            routerLink: "/",
+          },
+          {
+            title: "How do I cancel my WiseWallet Subscription",
+            category: "Billing & Subscription",
+            routerLink: "/billingfaq",
+          },
+          {
+            title: "WiseWallet's product offerings",
+            category: "About WiseWallet",
+            routerLink: "/productOfferings",
+          },
+          {
+            title: "Contact WiseWallet Support",
+            category: "About WiseWallet",
+            routerLink: "/aboutWiseWallet",
+          },
+        ],
+        messagesHistory: [
+          {
+            role: "system",
+            content: "You are a customer support chatbot for WiseWallet.",
+          },
+          { role: "assistant", content: "Hi, how can I help you today?" },
+        ],
+      };
     },
     mounted() {
-            this.scrollToBottom();
+      this.scrollToBottom();
     },
     methods: {
-        chatMessages() {
-            return this.messagesHistory
-        },
-        scrollToBottom() {
-            if (this.$refs.chatContainer) {
-                this.$refs.chatContainer.scrollTop = this.$refs.chatContainer.scrollHeight;
-            }
-        },
-        // Method to open user's default email client with pre-filled details
-        openEmailClient() {
-            const subject = "Customer Support Inquiry"; // Subject for the email
-            const body = "Dear WiseWallet Support Team,\n\n"; // Body of the email
-
-            window.location.href = `mailto:support@wisewallet.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        },
-        searchArticles() {
-            console.log("drsching...", this.searchTerm)
-            const keywords = this.searchTerm.toLowerCase().match(/\b\w+\b/g); // Split search term into keywords
-            console.log("keywords ", keywords)
-            if (!keywords) return [];
-            let farticles = this.articles.filter(article => {
-                const titleMatch = keywords.some(keyword => article.title.toLowerCase().includes(keyword)); // Check if any keyword matches the title
-                const categoryMatch = keywords.some(keyword => article.category.toLowerCase().includes(keyword)); // Check if any keyword matches the category
-                return titleMatch || categoryMatch; // Return true if any keyword matches the title or category
-            });
-            // console.log("fart ", farticles)
-            return farticles;
-        },
-        showChatBot() {
-            document.getElementById("chatbot").style.display = "flex"
-        },
-        closeChatBot() {
-            document.getElementById("chatbot").style.display = "none"
-        },
-        async sendMessageToOpenAPI(event) {
-            event.preventDefault();
-            // Ensure the message input element exists and is of the correct type
-            const messageInputElement = document.getElementById("messageInput");
-            if (messageInputElement instanceof HTMLInputElement) {
-            let message = messageInputElement.value;
-            messageInputElement.value = ""; // Reset the input field after getting the value
-
-            message = message !== undefined ? message.trim() : message;
-            if (!message || message === "") {
-                console.log('returning')
-                return
-            }
-
-            this.messagesHistory.push({ role: 'user', content: message });
-            const apiKey = 'sk-proj-36vXKYMpEw13gnQJrWDeT3BlbkFJjAuNVbl2SI96UspY9Y94';
-            const url = 'https://api.openai.com/v1/chat/completions';
-
-            const data = {
-                model: "gpt-3.5-turbo",
-                max_tokens: 1024,
-                messages: this.messagesHistory,
-                n: 1,
-                stop: null,
-                temperature: 0.7,
-            }
-
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify(data)
-            });
-            const responseJson = await response.json();
-            console.log("rsponse ", responseJson)
-            const chatbotResponse = await responseJson.choices[0].message.content.trim();
-            this.messagesHistory.push({ role: 'assistant', content: chatbotResponse });
+      chatMessages() {
+        return this.messagesHistory;
+      },
+      scrollToBottom() {
+        if (this.$refs.chatContainer) {
+          this.$refs.chatContainer.scrollTop =
+            this.$refs.chatContainer.scrollHeight;
         }
+      },
+      // Method to open user's default email client with pre-filled details
+      openEmailClient() {
+        const subject = "Customer Support Inquiry"; // Subject for the email
+        const body = "Dear WiseWallet Support Team,\n\n"; // Body of the email
+  
+        window.location.href = `mailto:support@wisewallet.com?subject=${encodeURIComponent(
+          subject
+        )}&body=${encodeURIComponent(body)}`;
+      },
+      searchArticles() {
+        console.log("drsching...", this.searchTerm);
+        const keywords = this.searchTerm.toLowerCase().match(/\b\w+\b/g); // Split search term into keywords
+        console.log("keywords ", keywords);
+        if (!keywords) {
+          this.filteredArticlesList = this.articles;
+          return;
+        }
+        let farticles = this.articles.filter((article) => {
+          const titleMatch = keywords.some((keyword) =>
+            article.title.toLowerCase().includes(keyword)
+          ); // Check if any keyword matches the title
+          const categoryMatch = keywords.some((keyword) =>
+            article.category.toLowerCase().includes(keyword)
+          ); // Check if any keyword matches the category
+          return titleMatch || categoryMatch; // Return true if any keyword matches the title or category
+        });
+        console.log("fart ", farticles);
+        this.filteredArticlesList = farticles;
+        return;
+      },
+      showChatBot() {
+        document.getElementById("chatbot").style.display = "flex";
+      },
+      closeChatBot() {
+        document.getElementById("chatbot").style.display = "none";
+      },
+      async sendMessageToOpenAPI(event) {
+        event.preventDefault();
+        // Ensure the message input element exists and is of the correct type
+        const messageInputElement = document.getElementById("messageInput");
+        if (messageInputElement instanceof HTMLInputElement) {
+          let message = messageInputElement.value;
+          messageInputElement.value = ""; // Reset the input field after getting the value
+  
+          message = message !== undefined ? message.trim() : message;
+          if (!message || message === "") {
+            console.log("returning");
+            return;
+          }
+  
+          this.messagesHistory.push({ role: "user", content: message });
+          const apiKey = process.env.OPENAI_API_KEY;
+          const url = "https://api.openai.com/v1/chat/completions";
+  
+          const data = {
+            model: "gpt-3.5-turbo",
+            max_tokens: 1024,
+            messages: this.messagesHistory,
+            n: 1,
+            stop: null,
+            temperature: 0.7,
+          };
+  
+          const response = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify(data),
+          });
+          const responseJson = await response.json();
+          console.log("rsponse ", responseJson);
+          const chatbotResponse =
+            await responseJson.choices[0].message.content.trim();
+          this.messagesHistory.push({
+            role: "assistant",
+            content: chatbotResponse,
+          });
+        }
+      },
     },
-    computed: {
-        filteredArticles() {
-            if (!this.searchTerm.trim()) {
-                return this.articles;
-            }
-            return this.searchArticles();
-        }
-    }, 
-},
-}
-</script>
-
-<style scoped>
-.user {
+  };
+  </script>
+  
+  <style scoped>
+  .user {
     color: black;
     padding: 10px;
     /* Add padding for content */
@@ -221,21 +288,19 @@ export default {
     margin-left: max(30%);
     padding: 10px;
     text-align: end;
-}
-
-.bot {
-    border:1px solid rgb(200, 190, 190);
+  }
+  
+  .bot {
+    border: 1px solid rgb(200, 190, 190);
     background-color: rgb(244, 236, 236);
     color: black;
     border-radius: 13px 13px 13px 3px;
     padding: 10px;
     margin-right: max(20%);
-    text-align: start
-
-}
-
-
-#chatbot {
+    text-align: start;
+  }
+  
+  #chatbot {
     background-color: white;
     color: black;
     display: none;
@@ -250,9 +315,9 @@ export default {
     border: 1px solid black;
     margin-right: 1px;
     margin-bottom: 1px;
-}
-
-#chat-header {
+  }
+  
+  #chat-header {
     height: 10%;
     margin-top: 3%;
     display: flex;
@@ -260,96 +325,95 @@ export default {
     padding: 0px 20px;
     align-items: start;
     width: 100%;
-}
-
-#chat-container {
+  }
+  
+  #chat-container {
     height: 70%;
     width: 100%;
     padding: 4px;
     overflow-y: auto;
-
-}
-
-#sendMessage {
+  }
+  
+  #sendMessage {
     width: 100%;
     display: flex;
     height: 10%;
     justify-content: center;
     align-items: end;
     margin-bottom: 3%;
-}
-
-#sendMessage input {
+  }
+  
+  #sendMessage input {
     height: 100%;
     padding-left: 5px;
     width: 75%;
-}
-
-#closeButton {
+  }
+  
+  #closeButton {
     color: rgb(0, 0, 0);
     background: rgb(255, 255, 255);
     border: none;
     font-weight: bold;
-}
-
-.send {
+  }
+  
+  .send {
     border: none;
     height: 100%;
     width: 20%;
     background-color: black;
     color: white;
-}
-
-.email-btn,
-.chat-bot {
+  }
+  
+  .email-btn,
+  .chat-bot {
     background-color: black;
     border: none;
     border-radius: 5px;
     padding: 10px 20px;
     color: white;
     font-weight: bold;
-}
-
-.chat-bot:hover,
-.email-btn:hover {
+  }
+  
+  .chat-bot:hover,
+  .email-btn:hover {
     cursor: pointer;
-    background: linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
+    background: linear-gradient(43deg, #4158d0 0%, #c850c0 46%, #ffcc70 100%);
     color: white;
-}
-
-.customerSupportContainer {
-    height:100vh;
+  }
+  
+  .customerSupportContainer {
+    height: 100vh;
     background: white;
-    flex:1;
-    margin-left:300px;
-    margin-top:80px;
-    position:relative;
-}
-
-.supportTeam {
+    flex: 1;
+    margin-left: 300px;
+    margin-top: 80px;
+    position: relative;
+  }
+  
+  .supportTeam {
     height: 45%;
-}
-
-.getInTouch {
+  }
+  
+  .getInTouch {
     background: white;
     height: 40%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-}
-
-.getInTouch h1 {
+  }
+  
+  .getInTouch h1 {
     padding: 1.5rem;
-}
-
-.contactIcons {
-  display: flex;
-  justify-content: space-around; /* Adjust spacing around the items */
-  align-items: stretch; /* Stretch to fill the height */
-}
-
-.contactWays {
+  }
+  
+  .contactIcons {
+    display: flex;
+    justify-content: space-around; /* Adjust spacing around the items */
+    align-items: stretch; /* Stretch to fill the height */
+  }
+  
+  .contactWays {
     display: flex;
     flex-direction: column;
     justify-content: center; /* Align vertically */
@@ -364,81 +428,81 @@ export default {
     margin: 0 10px;
     box-sizing: border-box;
     overflow: hidden; /* Prevents content from spilling out */
-}
-
-.contactWays i {
+  }
+  
+  .contactWays i {
     font-size: 35px; /* Adjust icon size as needed */
-}
-
-.contactWays h2 {
+  }
+  
+  .contactWays h2 {
     font-size: 18px; /* Adjust heading size */
     margin: 10px 0; /* Space below heading */
-}
-
-.contactWays p {
+  }
+  
+  .contactWays p {
     margin-bottom: 15px; /* Space above button */
     padding: 0 10px; /* Padding on the sides */
-}
-
-.askQuestion,
-.supportTeam {
-  padding-left: 0px; /* Left padding to align with the rest of the content */
-}
-
-.askQuestion {
+  }
+  
+  .askQuestion,
+  .supportTeam {
+    padding-left: 0px; /* Left padding to align with the rest of the content */
+  }
+  
+  .askQuestion {
     height: 55%;
-}
-
-.askTitle {
+  }
+  
+  .askTitle {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 50%;
     /* Set the height to 50% */
-    background-image: url('src/assets/iStock-1159238834-1628x1080.jpeg');
+    background-image: url("src/assets/iStock-1159238834-1628x1080.jpeg");
     background-size: cover;
     /* Adjust background size */
     background-position: center;
     /* Center the background image */
-}
-
-.askTitle h1 {
+  }
+  
+  .askTitle h1 {
     padding: 1.5rem;
     color: white;
-}
-
-.askTitle p {
+  }
+  
+  .askTitle p {
     padding: 1.5rem;
     font-size: 26px;
     color: white;
-}
-
-.askTitle span {
+  }
+  
+  .askTitle span {
     font-weight: 700;
     position: relative;
-    color: white
-}
-
-.askTitle span::before {
+    color: white;
+  }
+  
+  .askTitle span::before {
     content: "";
     position: absolute;
     left: 10;
     bottom: 0;
     height: 3px;
     width: 30px;
-    background: linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
-}
-
-.search-container {
+    background: linear-gradient(43deg, #4158d0 0%, #c850c0 46%, #ffcc70 100%);
+  }
+  
+  .search-container {
     display: flex;
     align-items: center;
     border: 1px solid #ccc;
     border-radius: 5px;
     padding: 5px;
-}
-
-.search-container input[type="text"] {
+  }
+  
+  .search-container input[type="text"] {
     flex: 1;
     width: 400px;
     height: 60px;
@@ -446,43 +510,44 @@ export default {
     padding: 8px;
     border-radius: 5px;
     outline: none;
-}
-
-.search-container button {
+  }
+  
+  .search-container button {
     background-color: white;
     transition: background-color 0.3s;
-}
-
-.search-container button:hover {
+  }
+  
+  .search-container button:hover {
     background: linear-gradient(-135deg, #71b7e6, #9b59b6);
     cursor: pointer;
-}
-
-.askQuestion .faqArticles {
+  }
+  
+  .askQuestion .faqArticles {
     background: #e5e5e1;
     height: 50%;
     text-align: center;
     padding: 2rem;
-}
-
-.askQuestion .faqArticles h1 {
+  }
+  
+  .askQuestion .faqArticles h1 {
     font-size: 20px;
-    color: #4158D0;
-}
-
-.articlesContainer {
+    color: #4158d0;
+  }
+  
+  .articlesContainer {
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 2rem;
-}
-
-.articles {
+  }
+  
+  .articles {
     padding: 2.5rem;
-}
-
-.articlesContainer :hover{
-    color:#4158D0;
+  }
+  
+  .articlesContainer :hover {
+    color: #4158d0;
     cursor: pointer;
-}
-</style>
+  }
+  </style>
+  
