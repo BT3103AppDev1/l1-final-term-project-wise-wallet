@@ -120,7 +120,7 @@
                         <i :class = "getIconClass(category)"></i>
                         <strong>{{ category }}</strong>
                     </div>
-                    <p><i class='bx bx-edit-alt'></i>Total Amount: ${{ transactions.totalAmount.toFixed(2) }}</p>
+                    <p>Total Amount: ${{ transactions.totalAmount.toFixed(2) }}</p>
                 </div>
                 <div v-if="expandedCategory === category">
                     <!-- Transactions list -->

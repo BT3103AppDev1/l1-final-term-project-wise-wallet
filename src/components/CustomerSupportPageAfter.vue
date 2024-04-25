@@ -460,7 +460,6 @@
     justify-content: center;
     height: 50%;
     /* Set the height to 50% */
-    background-image: url("src/assets/iStock-1159238834-1628x1080.jpeg");
     background-size: cover;
     /* Adjust background size */
     background-position: center;
@@ -469,19 +468,19 @@
   
   .askTitle h1 {
     padding: 1.5rem;
-    color: white;
+    color: black;
   }
   
   .askTitle p {
     padding: 1.5rem;
     font-size: 26px;
-    color: white;
+    color: black;
   }
   
   .askTitle span {
     font-weight: 700;
     position: relative;
-    color: white;
+    color: black;
   }
   
   .askTitle span::before {
