@@ -43,11 +43,11 @@
                         <div class="user-details">
                             <div class="input-box">
                                 <label class="details">First Name:</label>
-                                <input type="text" v-model="firstName" required>
+                                <input type="text" v-model="firstName" >
                             </div>
                             <div class="input-box">
                                 <label class="details">Last Name:</label>
-                                <input type="text" v-model="lastName" required>
+                                <input type="text" v-model="lastName" >
                             </div>
                             <div class="input-box">
                                 <label class="details">Gender:</label>
@@ -58,30 +58,30 @@
                             </div>
                             <div class="input-box">
                                 <label class="details">Country:</label>
-                                <select v-model="selectedCountry" required>
+                                <select v-model="selectedCountry" >
                                     <option value="" disabled>Select country</option>
                                     <option v-for="country in countries" :key="country.code" :value="country.code">{{ country.name }}</option>
                                 </select>
                             </div>
                             <div class="input-box">
                                 <label class="details">City:</label>
-                                <input type="text" v-model="selectedCity" placeholder="Enter city" required>
+                                <input type="text" v-model="selectedCity" placeholder="Enter city" >
                             </div>
                             <div class="input-box">
                                 <label class="details">Street:</label>
-                                <input type="text" v-model="selectedStreet" placeholder="Enter street" required>
+                                <input type="text" v-model="selectedStreet" placeholder="Enter street" >
                             </div>
                             <div class="input-box">
                                 <label class="details">Postal Code:</label>
-                                <input type="text" v-model="selectedPostalCode" placeholder="Enter postal code" required>
+                                <input type="text" v-model="selectedPostalCode" placeholder="Enter postal code" >
                             </div>
                             <div class="input-box">
                                 <label class="details">Phone:</label>
-                                <input type="text" v-model="selectedPhone" placeholder="Enter phone number" required>
+                                <input type="text" v-model="selectedPhone" placeholder="Enter phone number" >
                             </div>
                             <div class="input-box">
                                 <label class="details">Occupation:</label>
-                                <input type="text" v-model="selectedOccupation" placeholder="Enter occupation" required>
+                                <input type="text" v-model="selectedOccupation" placeholder="Enter occupation" >
                             </div>
                             <div class="input-box">
                                 <label class="details">Total Annual Income:</label>
@@ -106,12 +106,13 @@
 import {auth, db} from '@/assets/firebase.js';
 import {ref, set, get} from 'firebase/database';
 import {updateProfile } from 'firebase/auth';
+
 export default {
   data() {
     return {
         firstName: '',
         lastName: '',
-        selectedGender: '',
+        selectedGender: '', // default value or could be null if optional
         selectedCountry: '',
         selectedCity: '',
         selectedStreet: '',
@@ -203,21 +204,21 @@ export default {
       };
 
         updateProfile(currentUser, {
-            displayName: firstName + ' ' + lastName,
+            displayName: this.firstName + ' ' + this.lastName,
         })
         // Save additional user data to the database
         set(ref(db, 'users/' + currentUser.uid), {
-                    firstName: firstName,
-                    lastName: lastName,
-                    country: selectedCountry,
-                    gender: selectedGender,
-                    city: selectedCity,
-                    street: selectedStreet,
-                    postalCode: selectedPostalCode,
-                    phone: selectedPhone,
-                    occupation: selectedOccupation,
-                    incomeRange: selectedIncomeRange
-                })
+    firstName: this.firstName,
+    lastName: this.lastName,
+    country: this.selectedCountry,
+    gender: this.selectedGender,
+    city: this.selectedCity,
+    street: this.selectedStreet,
+    postalCode: this.selectedPostalCode,
+    phone: this.selectedPhone,
+    occupation: this.selectedOccupation,
+    incomeRange: this.selectedIncomeRange
+})
                 .then(() => {
                     console.log('User data saved successfully');
                     alert('User data saved successfully')

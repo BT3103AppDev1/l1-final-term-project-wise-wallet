@@ -238,7 +238,7 @@ export default {
 #chatbot {
     background-color: white;
     color: black;
-    display: flex;
+    display: none;
     justify-content: space-between;
     align-items: center;
     flex-direction: column;
